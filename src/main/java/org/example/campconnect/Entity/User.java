@@ -1,29 +1,34 @@
 package org.example.campconnect.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.util.List;
-
+@Builder
+@Table(name = "users")
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long idUser;
     String firstName;
     String lastName;
+    @Column(nullable = false, unique = true)
     String email;
+    @Column(nullable = false)
     String password;
     String phone;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     Role role;
+    @Builder.Default
+    boolean enabled = true;
 
 
     @OneToMany(mappedBy = "user")
