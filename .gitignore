@@ -6,7 +6,7 @@ target/
 
 ### STS ###
 .apt_generated
-.classpath
+.classpathgit remote remove origin
 .factorypath
 .project
 .settings
