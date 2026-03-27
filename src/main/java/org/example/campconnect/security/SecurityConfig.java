@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.campconnect.security.jwt.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -59,6 +60,13 @@ public class SecurityConfig {
                         ).permitAll()
                         // ✅ Auth endpoints
                         .requestMatchers("/auth/**").permitAll()
+                        // ✅ Equipement
+                        .requestMatchers(HttpMethod.GET, "/equipment/verified").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/equipment").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/equipment/my").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/equipment/unverified").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/equipment/verify/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/equipment/**").authenticated()
                         // ✅ Rôles
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/camp/**").hasRole("CAMPOWNER")
@@ -66,6 +74,7 @@ public class SecurityConfig {
                         .requestMatchers("/delivery/**").hasRole("DELIVERYPERSON")
                         .requestMatchers("/partner/**").hasRole("PARTNER")
                         .anyRequest().authenticated()
+
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

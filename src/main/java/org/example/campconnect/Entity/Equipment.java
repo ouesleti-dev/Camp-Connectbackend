@@ -19,13 +19,16 @@ public class Equipment {
     String name;
     @Enumerated(EnumType.STRING)
     Type type;
-    String Description;
+    String description;
     String owner;
     Date aviability;
-    Boolean verified;
+    @Column(nullable = false)
+    @Builder.Default
+    Boolean verified = false;
     @Enumerated(EnumType.STRING)
     State state;
     Float price;
+    @Column(columnDefinition = "LONGTEXT")
     String picture;
     @ManyToMany (mappedBy = "equipment")
     private List<Rental> rental;
