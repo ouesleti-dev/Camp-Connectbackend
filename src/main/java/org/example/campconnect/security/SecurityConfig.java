@@ -67,6 +67,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/equipment/unverified").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/equipment/verify/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/equipment/**").authenticated()
+                        // rental
+                        .requestMatchers(HttpMethod.POST, "/rental/request").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/rental/accept/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/rental/my-rentals").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/rental/received").authenticated()
                         // ✅ Rôles
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/camp/**").hasRole("CAMPOWNER")
@@ -74,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/delivery/**").hasRole("DELIVERYPERSON")
                         .requestMatchers("/partner/**").hasRole("PARTNER")
                         .anyRequest().authenticated()
+
 
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

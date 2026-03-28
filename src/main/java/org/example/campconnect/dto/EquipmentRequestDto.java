@@ -11,8 +11,6 @@ public class EquipmentRequestDto {
     private Type type;
     private String description;
     private String owner;
-    private Date aviability;
-    private State state;
     private Float price;
     private String picture;
 }

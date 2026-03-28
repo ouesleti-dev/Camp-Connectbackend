@@ -1,0 +1,25 @@
+package org.example.campconnect.Repository;
+
+import org.example.campconnect.Entity.Rental;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.Date;
+import java.util.List;
+
+@Repository
+public interface RentalRepository extends JpaRepository<Rental, Long> {
+    List<Rental> findByRenterEmail(String renterEmail);
+    List<Rental> findByOwnerEmail(String ownerEmail);
+
+    @Query("SELECT COUNT(r) > 0 FROM Rental r JOIN r.equipment e WHERE e.idEquipement = :equipmentId " +
+            "AND r.verified = true " +
+            "AND r.startdate <= :endDate AND r.enddate >= :startDate")
+    boolean existsConflictingRental(
+            @Param("equipmentId") Long equipmentId,
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+}

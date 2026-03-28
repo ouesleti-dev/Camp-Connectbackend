@@ -2,6 +2,7 @@ package org.example.campconnect.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Entity.Equipment;
+import org.example.campconnect.Entity.State;
 import org.example.campconnect.Repository.EquipmentRepository;
 import org.example.campconnect.dto.EquipmentRequestDto;
 import org.example.campconnect.dto.EquipmentResponseDto;
@@ -35,8 +36,8 @@ public class IEquipmentServiceImp implements IEquipmentService {
                 .type(dto.getType())
                 .description(dto.getDescription())
                 .owner(ownerEmail)
-                .aviability(dto.getAviability())
-                .state(dto.getState())
+                .aviability(null)
+                .state(State.Not_Reserve)
                 .price(dto.getPrice())
                 .picture(dto.getPicture())
                 .verified(Boolean.FALSE) // ✅ Non vérifié par défaut
