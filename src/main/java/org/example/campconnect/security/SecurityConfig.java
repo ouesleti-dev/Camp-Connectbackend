@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.campconnect.security.jwt.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -61,7 +62,29 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         // ✅ Rôles
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/camp/**").hasRole("CAMPOWNER")
+
+
+                        .requestMatchers(HttpMethod.DELETE, "/campings/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/campings/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/campings/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/campings/**").authenticated()
+
+                        .requestMatchers(HttpMethod.POST, "/events/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/events/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/events/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/events/**").authenticated()
+
+                        .requestMatchers(HttpMethod.POST, "/activities/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/activities/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/activities/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/activities/**").authenticated()
+
+                        .requestMatchers("/posts/**").authenticated()
+                        .requestMatchers("/comments/**").authenticated()
+                        .requestMatchers("/responses/**").authenticated()
+                        .requestMatchers("/participations/**").authenticated()
+
+
                         .requestMatchers("/camper/**").hasRole("CAMPER")
                         .requestMatchers("/delivery/**").hasRole("DELIVERYPERSON")
                         .requestMatchers("/partner/**").hasRole("PARTNER")

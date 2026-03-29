@@ -1,10 +1,7 @@
 package org.example.campconnect.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,6 +11,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,8 +22,10 @@ public class Comment {
 
     @ManyToOne
     private Post post;
-    @OneToMany(mappedBy = "comment")
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Response> responses;
+
 
     @ManyToOne
     @JoinColumn(name = "user_id")
