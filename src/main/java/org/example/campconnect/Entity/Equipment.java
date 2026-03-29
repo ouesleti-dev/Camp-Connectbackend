@@ -30,6 +30,6 @@ public class Equipment {
     Float price;
     @Column(columnDefinition = "LONGTEXT")
     String picture;
-    @OneToMany(mappedBy = "equipment")
+    @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rental> rentals;
 }

@@ -66,12 +66,21 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/equipment/my").authenticated()
                         .requestMatchers(HttpMethod.GET, "/equipment/unverified").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/equipment/verify/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/equipment/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/equipment/**").authenticated()
                         // rental
                         .requestMatchers(HttpMethod.POST, "/rental/request").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/rental/accept/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/rental/accept/**").authenticated() // ✅ PRIORITÉ
                         .requestMatchers(HttpMethod.GET, "/rental/my-rentals").authenticated()
                         .requestMatchers(HttpMethod.GET, "/rental/received").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/rental/reserved-dates/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/rental/**").authenticated()   // ✅ AJOUTÉ
+                        .requestMatchers(HttpMethod.DELETE, "/rental/**").authenticated() // ✅ AJOUTÉ
+                        // Reviews
+                        .requestMatchers(HttpMethod.POST,   "/review/equipment/**").authenticated()  // ← POST en PREMIER
+                        .requestMatchers(HttpMethod.GET,    "/review/equipment/**").permitAll()       // ← GET en SECOND
+                        .requestMatchers(HttpMethod.PUT,    "/review/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/review/**").authenticated()
                         // ✅ Rôles
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/camp/**").hasRole("CAMPOWNER")

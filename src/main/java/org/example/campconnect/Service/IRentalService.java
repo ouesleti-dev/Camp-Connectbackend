@@ -10,4 +10,6 @@ public interface IRentalService {
     RentalResponseDto acceptRental(Long rentalId, String ownerEmail);
     List<RentalResponseDto> getMyRentals(String renterEmail);
     List<RentalResponseDto> getRentalsAsOwner(String ownerEmail);
+    void deleteRental(Long rentalId, String email);
+    RentalResponseDto updateRental(Long rentalId, RentalRequestDto dto, String email);
 }

@@ -65,10 +65,6 @@ public class IRentalServiceImp implements IRentalService {
         // verified = true → accepté
         rental.setVerified(true);
 
-        // Marque équipement comme Reserve
-        Equipment equipment = rental.getEquipment();
-        equipment.setState(State.Reserve);
-        equipmentRepository.save(equipment);
 
         return toDto(rentalRepository.save(rental));
     }
@@ -97,5 +93,61 @@ public class IRentalServiceImp implements IRentalService {
         dto.setEquipmentId(r.getEquipment().getIdEquipement());
         dto.setEquipmentName(r.getEquipment().getName());
         return dto;
+    }
+    @Override
+    public void deleteRental(Long rentalId, String email) {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new RuntimeException("Rental not found"));
+
+        // ✅ Seul le renter ou le owner peut supprimer
+        if (!rental.getRenterEmail().equalsIgnoreCase(email) &&
+                !rental.getOwnerEmail().equalsIgnoreCase(email)) {
+            throw new RuntimeException("Not authorized");
+        }
+
+        // ✅ Ne peut pas supprimer une location déjà acceptée
+        if (Boolean.TRUE.equals(rental.getVerified())) {
+            throw new RuntimeException("Cannot delete an accepted rental");
+        }
+
+        rentalRepository.deleteById(rentalId);
+    }
+
+    @Override
+    public RentalResponseDto updateRental(Long rentalId, RentalRequestDto dto, String email) {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new RuntimeException("Rental not found"));
+
+        // ✅ Seul le renter peut modifier
+        if (!rental.getRenterEmail().equalsIgnoreCase(email)) {
+            throw new RuntimeException("Not authorized");
+        }
+
+        // ✅ Ne peut pas modifier une location déjà acceptée
+        if (Boolean.TRUE.equals(rental.getVerified())) {
+            throw new RuntimeException("Cannot update an accepted rental");
+        }
+
+        Equipment equipment = rental.getEquipment();
+
+        // ✅ Vérifie pas de conflit de dates
+        boolean conflict = rentalRepository.existsConflictingRental(
+                equipment.getIdEquipement(), dto.getStartDate(), dto.getEndDate()
+        );
+        if (conflict) {
+            throw new RuntimeException("Equipment not available for these dates");
+        }
+
+        // ✅ Recalcul montant
+        long diffMs = dto.getEndDate().getTime() - dto.getStartDate().getTime();
+        long days = TimeUnit.MILLISECONDS.toDays(diffMs);
+        if (days < 1) days = 1;
+        float total = equipment.getPrice() * days;
+
+        rental.setStartdate(dto.getStartDate());
+        rental.setEnddate(dto.getEndDate());
+        rental.setTotalAmount(total);
+
+        return toDto(rentalRepository.save(rental));
     }
 }

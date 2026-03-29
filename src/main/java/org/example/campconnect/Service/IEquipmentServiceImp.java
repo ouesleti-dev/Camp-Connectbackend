@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Entity.Equipment;
 import org.example.campconnect.Entity.State;
 import org.example.campconnect.Repository.EquipmentRepository;
+import org.example.campconnect.Repository.RentalRepository;
+import org.example.campconnect.Repository.ReviewRepository;
 import org.example.campconnect.dto.EquipmentRequestDto;
 import org.example.campconnect.dto.EquipmentResponseDto;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,6 +18,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class IEquipmentServiceImp implements IEquipmentService {
     private final EquipmentRepository equipmentRepository;
+    private final RentalRepository rentalRepository;
+    private final ReviewRepository reviewRepository;
     private EquipmentResponseDto toDto(Equipment equipment) {
         EquipmentResponseDto dto = new EquipmentResponseDto();
         dto.setIdEquipement(equipment.getIdEquipement());
@@ -80,7 +85,32 @@ public class IEquipmentServiceImp implements IEquipmentService {
     }
 
     @Override
+    @Transactional
     public void deleteEquipment(Long id) {
+        // ✅ 1. Supprimer les reviews liés à cet équipement
+        reviewRepository.deleteByEquipment_IdEquipement(id);
+        // ✅ 2. Supprimer les rentals liés
+        rentalRepository.deleteByEquipment_IdEquipement(id);
+        // ✅ 3. Supprimer l'équipement
         equipmentRepository.deleteById(id);
     }
+    @Override
+    public EquipmentResponseDto updateEquipment(Long id, EquipmentRequestDto dto, String email) {
+        Equipment equipment = equipmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Equipment not found"));
+
+        if (email != null && !equipment.getOwner().trim().equalsIgnoreCase(email.trim())) {
+            throw new RuntimeException("Not authorized");
+        }
+
+        equipment.setName(dto.getName());
+        equipment.setType(dto.getType());
+        equipment.setDescription(dto.getDescription());
+        equipment.setPrice(dto.getPrice());
+        equipment.setPicture(dto.getPicture());
+        equipment.setVerified(Boolean.FALSE);
+
+        return toDto(equipmentRepository.save(equipment));
+    }
+
 }

@@ -12,4 +12,5 @@ public interface IEquipmentService {
     List<EquipmentResponseDto> getUnverifiedEquipments();
     EquipmentResponseDto verifyEquipment(Long id);
     void deleteEquipment(Long id);
+    EquipmentResponseDto updateEquipment(Long id, EquipmentRequestDto dto, String email);
 }

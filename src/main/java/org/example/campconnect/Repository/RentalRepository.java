@@ -1,5 +1,6 @@
 package org.example.campconnect.Repository;
 
+import org.example.campconnect.Entity.Equipment;
 import org.example.campconnect.Entity.Rental;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,9 +12,9 @@ import java.util.List;
 
 @Repository
 public interface RentalRepository extends JpaRepository<Rental, Long> {
+    void deleteByEquipment_IdEquipement(Long equipmentId);
     List<Rental> findByRenterEmail(String renterEmail);
     List<Rental> findByOwnerEmail(String ownerEmail);
-
     @Query("SELECT COUNT(r) > 0 FROM Rental r JOIN r.equipment e WHERE e.idEquipement = :equipmentId " +
             "AND r.verified = true " +
             "AND r.startdate <= :endDate AND r.enddate >= :startDate")
@@ -22,4 +23,7 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate
     );
+    @Query("SELECT r FROM Rental r WHERE r.equipment.idEquipement = :equipmentId AND r.verified = true")
+    List<Rental> findAcceptedRentalsByEquipment(Long equipmentId);
+
 }

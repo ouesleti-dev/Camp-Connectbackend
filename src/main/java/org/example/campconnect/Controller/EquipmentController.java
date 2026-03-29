@@ -54,14 +54,35 @@ public class EquipmentController {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
+        // Si admin → supprime directement sans vérification
+        if (isAdmin) {
+            equipmentService.deleteEquipment(id);
+            return ResponseEntity.noContent().build();
+        }
+
+        // Si owner → vérifie que c'est bien son équipement
         Equipment equipment = equipmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Equipment not found"));
 
-        if (!equipment.getOwner().equals(email) && !isAdmin) {
+        if (!equipment.getOwner().equals(email)) {
             return ResponseEntity.status(403).build();
         }
 
+        // Vérifie pas de location active avant de supprimer
         equipmentService.deleteEquipment(id);
         return ResponseEntity.noContent().build();
+    }
+    @PutMapping("/{id}")
+    public ResponseEntity<EquipmentResponseDto> update(
+            @PathVariable Long id,
+            @RequestBody EquipmentRequestDto dto,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        String ownerEmail = isAdmin ? null : email;
+        return ResponseEntity.ok(equipmentService.updateEquipment(id, dto, ownerEmail));
     }
 }
