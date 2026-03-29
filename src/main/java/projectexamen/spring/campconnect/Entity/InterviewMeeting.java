@@ -1,20 +1,12 @@
 package projectexamen.spring.campconnect.Entity;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+import jakarta.persistence.*;
 import java.sql.Time;
 import java.util.Date;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-
 public class InterviewMeeting {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long meetingId;
@@ -22,10 +14,7 @@ public class InterviewMeeting {
     @Temporal(TemporalType.DATE)
     private Date meetingDate;
 
-    @Temporal(TemporalType.TIME)
     private Time startTime;
-
-    @Temporal(TemporalType.TIME)
     private Time endTime;
 
     @Enumerated(EnumType.STRING)
@@ -37,4 +26,30 @@ public class InterviewMeeting {
     @OneToOne
     @JoinColumn(name = "interview_id")
     private PartnerInterview interview;
+
+    public InterviewMeeting() {}
+
+    public InterviewMeeting(Long meetingId, Date meetingDate, Time startTime, Time endTime, InterviewMode mode, String location, String report, PartnerInterview interview) {
+        this.meetingId = meetingId; this.meetingDate = meetingDate;
+        this.startTime = startTime; this.endTime = endTime;
+        this.mode = mode; this.location = location;
+        this.report = report; this.interview = interview;
+    }
+
+    public Long getMeetingId() { return meetingId; }
+    public void setMeetingId(Long meetingId) { this.meetingId = meetingId; }
+    public Date getMeetingDate() { return meetingDate; }
+    public void setMeetingDate(Date meetingDate) { this.meetingDate = meetingDate; }
+    public Time getStartTime() { return startTime; }
+    public void setStartTime(Time startTime) { this.startTime = startTime; }
+    public Time getEndTime() { return endTime; }
+    public void setEndTime(Time endTime) { this.endTime = endTime; }
+    public InterviewMode getMode() { return mode; }
+    public void setMode(InterviewMode mode) { this.mode = mode; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+    public String getReport() { return report; }
+    public void setReport(String report) { this.report = report; }
+    public PartnerInterview getInterview() { return interview; }
+    public void setInterview(PartnerInterview interview) { this.interview = interview; }
 }

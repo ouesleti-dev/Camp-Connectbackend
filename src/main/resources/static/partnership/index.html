@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Campconnect — Partenariat</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="auth-section" class="auth-wrap">
+    <div class="panel">
+      <h2>Connexion partenaire</h2>
+      <p style="color: var(--muted); font-size: 0.9rem;">
+        Utilisez un compte avec le rôle <strong>PARTNER</strong> ou <strong>ADMIN</strong>.
+        Inscription ci-dessous si besoin.
+      </p>
+      <div id="auth-msg"></div>
+      <div class="grid-form">
+        <label>Email
+          <input type="email" id="login-email" autocomplete="username" />
+        </label>
+        <label>Mot de passe
+          <input type="password" id="login-password" autocomplete="current-password" />
+        </label>
+      </div>
+      <div class="auth-actions">
+        <button type="button" class="btn" id="btn-login">Se connecter</button>
+      </div>
+      <hr style="border-color: var(--border); margin: 1.25rem 0" />
+      <h3 style="margin: 0 0 0.75rem; font-size: 1rem">Créer un compte partenaire</h3>
+      <div class="grid-form">
+        <label>Prénom <input type="text" id="reg-first" /></label>
+        <label>Nom <input type="text" id="reg-last" /></label>
+        <label>Email <input type="email" id="reg-email" /></label>
+        <label>Téléphone <input type="text" id="reg-phone" /></label>
+        <label>Mot de passe <input type="password" id="reg-pass" /></label>
+      </div>
+      <div class="auth-actions">
+        <button type="button" class="btn btn-ghost" id="btn-register">S’inscrire (PARTNER)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-section" class="hidden">
+    <header class="app-header">
+      <h1>Campconnect — Gestion partenariat</h1>
+      <div class="user-bar" id="user-info"></div>
+      <nav class="tabs" id="nav-tabs"></nav>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-logout">Déconnexion</button>
+    </header>
+    <main>
+      <div id="app-msg"></div>
+      <div id="panel-root"></div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

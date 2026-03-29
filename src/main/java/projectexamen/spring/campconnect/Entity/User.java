@@ -1,28 +1,30 @@
 package projectexamen.spring.campconnect.Entity;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Table(name = "user")
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long idUser;
-    String firstName;
-    String lastName;
-    String email;
-    String password;
-    String phone;
+    private Long idUser;
+
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String password;
+    private String phone;
+
     @Enumerated(EnumType.STRING)
-    Role role;
+    private Role role;
+
     @ManyToOne
     @JoinColumn(name = "camping_id")
     private campings camping;
@@ -33,5 +35,6 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<PartnerQuiz> quizzes;
 
+    @Builder.Default
+    private boolean enabled = true;
 }
-
