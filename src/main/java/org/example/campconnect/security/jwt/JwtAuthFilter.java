@@ -22,29 +22,36 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
 
     @Override
+
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
 
+        System.out.println("=== JWT FILTER ===");
+        System.out.println("URI: " + request.getRequestURI());
+        System.out.println("Auth Header: " + authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-
         String token = authHeader.substring(7);
         String email;
 
         try {
             email = jwtService.extractEmail(token);
+            System.out.println("Email extracted: " + email);
         } catch (Exception e) {
+            System.out.println("Token parse error: " + e.getMessage());
             filterChain.doFilter(request, response);
             return;
         }
 
-
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            System.out.println("UserDetails loaded: " + userDetails.getUsername());
+            System.out.println("Authorities: " + userDetails.getAuthorities());
+            System.out.println("Token valid: " + jwtService.isTokenValid(token, userDetails));
 
             if (jwtService.isTokenValid(token, userDetails)) {
                 var authToken = new UsernamePasswordAuthenticationToken(
@@ -52,10 +59,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                System.out.println("Authentication SET ✅");
+            } else {
+                System.out.println("Token INVALID ❌");
             }
         }
 
         filterChain.doFilter(request, response);
-
     }
 }
