@@ -25,7 +25,7 @@ public class campings {
     private String city;
     private String postalCode;
 
-    /** Capacité (emplacements / personnes) — alimente l’admin partenariat. */
+    /** Cpacité (emplacements / personnes) — alimente l’admin partenariat. */
     private Integer capacite;
 
     @OneToMany(mappedBy = "camping")
@@ -40,3 +40,5 @@ public class campings {
     )
     private Set<User> partnerLinks = new HashSet<>();
 }
+
+//
