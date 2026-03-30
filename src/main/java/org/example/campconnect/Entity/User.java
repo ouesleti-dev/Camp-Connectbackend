@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
+import java.util.ArrayList;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
 import java.util.List;
 @Builder
 @Table(name = "users")
@@ -48,10 +50,20 @@ public class User {
     private List<Response> responses;
     @JsonIgnore
     @OneToMany
-    private List<Reservation> reservations;
+    @JoinTable(
+            name = "user_reservations",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "reservations_reservation_id")
+    )
+    private List<Reservation> reservations = new ArrayList<>();
     @JsonIgnore
     @OneToMany
-    private List<Vehicle> vehicles;
+    @JoinTable(
+            name = "user_vehicles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "vehicles_vehicle_id")
+    )
+    private List<Vehicle> vehicles = new ArrayList<>();
     @JsonIgnore
     @OneToMany
     private List<Product> products;

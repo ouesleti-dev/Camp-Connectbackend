@@ -1,8 +1,9 @@
 package org.example.campconnect.Entity;
 
-import jakarta.persistence.*;
-import lombok.*;
 
+import jakarta.persistence.Entity;
+import lombok.*;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 

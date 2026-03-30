@@ -22,18 +22,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
 
     @Override
-
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
+        String method = request.getMethod();
+        String uri = request.getRequestURI();
 
         System.out.println("=== JWT FILTER ===");
         System.out.println("URI: " + request.getRequestURI());
         System.out.println("Auth Header: " + authHeader);
+        System.out.println(">>> REQUEST: " + method + " " + uri);
+        System.out.println(">>> AUTH HEADER: " + authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
+
 
         String token = authHeader.substring(7);
         String email;
@@ -41,11 +45,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             email = jwtService.extractEmail(token);
             System.out.println("Email extracted: " + email);
+            System.out.println(">>> EXTRACTED EMAIL: " + email);
         } catch (Exception e) {
             System.out.println("Token parse error: " + e.getMessage());
+            System.out.println(">>> JWT ERROR: " + e.getMessage());
             filterChain.doFilter(request, response);
             return;
         }
+
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -66,5 +73,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+
     }
 }

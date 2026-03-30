@@ -45,8 +45,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider())
                 .authorizeHttpRequests(auth -> auth
@@ -83,6 +83,27 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,    "/review/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/review/**").authenticated()
                         // ✅ Rôles
+                        .requestMatchers("/trips/upcoming").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/reservations/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/reservations/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/reservations/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/reservations/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/camp/**").hasRole("CAMPOWNER")
                         .requestMatchers("/camper/**").hasRole("CAMPER")
@@ -133,22 +154,24 @@ public class SecurityConfig {
 
         return http.build();
 
+
     }
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:4200"));
 
-        // ✅ CHANGER CETTE LIGNE
-        config.setAllowedOriginPatterns(List.of("*")); // ← pas setAllowedOrigins !
+
+
+
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
+       config.setMaxAge(3600L);
 
-       UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        return source;
+       return source;
     }
 }
-
