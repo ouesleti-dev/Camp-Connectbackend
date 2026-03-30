@@ -60,9 +60,14 @@ public class SecurityConfig {
                         ).permitAll()
                         // ✅ Auth endpoints
                         .requestMatchers("/auth/**").permitAll()
+                        // ✅ Preflight CORS (navigateur)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // ✅ Interface partenariat (fichiers statiques)
                         .requestMatchers(HttpMethod.GET, "/", "/partnership/**").permitAll()
-                        // ✅ API partenariat
+                        // ✅ API partenariat — lecture publique (affichage front / démo sans JWT),
+                        //    écriture réservée ADMIN / PARTNER
+                        .requestMatchers(HttpMethod.GET, "/api/partnership/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/api/partnership/**").permitAll()
                         .requestMatchers("/api/partnership/**").hasAnyRole("PARTNER", "ADMIN")
                         // ✅ Rôles
                         .requestMatchers("/admin/**").hasRole("ADMIN")
