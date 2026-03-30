@@ -1,6 +1,7 @@
 package org.example.campconnect.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,10 +22,15 @@ public class Order {
     Double totalAmount;
     String deliveryAddress;
     String paymentMethod;
+    @Column(nullable = false)
+    @Builder.Default
+    String orderStatus = "PENDING";
     @ManyToOne
     private User user;
-    @OneToMany
+
+    @OneToMany(fetch = FetchType.EAGER)
     private List<OrderLine> orderLines;
+    @JsonIgnore
     @OneToOne(mappedBy = "order")
     private Delivery delivery;
 }

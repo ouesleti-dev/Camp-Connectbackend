@@ -1,5 +1,6 @@
 package org.example.campconnect.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,11 +23,19 @@ public class Product {
     String descriptionProduct;
     Double priceProduct;
     Integer quantityProduct;
+    @Column(columnDefinition = "LONGTEXT")
     String photoProduct;
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    ProductStatus productStatus = ProductStatus.PENDING;
     @Enumerated(EnumType.STRING)
     ProductState productState;
     String locationProduct;
     Date addedDate;
+    @JsonIgnore
     @OneToMany(mappedBy = "product")
     private List<OrderLine> orderLines;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

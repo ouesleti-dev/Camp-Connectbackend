@@ -6,7 +6,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@Configuration  // ← tu l'as oublié !
 public class SwaggerConfig {
 
     @Bean
