@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.campconnect.security.jwt.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -48,7 +49,6 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider())
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Swagger - IMPORTANT : ces lignes doivent être en premier
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -57,9 +57,28 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
-                        // ✅ Auth endpoints
                         .requestMatchers("/auth/**").permitAll()
-                        // ✅ Rôles
+                        .requestMatchers("/trips/upcoming").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/reservations/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/reservations/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/reservations/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/reservations/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/camp/**").hasRole("CAMPOWNER")
                         .requestMatchers("/camper/**").hasRole("CAMPER")
@@ -76,7 +95,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 

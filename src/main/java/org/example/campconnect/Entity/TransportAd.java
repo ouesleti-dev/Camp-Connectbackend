@@ -1,6 +1,7 @@
 package org.example.campconnect.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public class TransportAd {
     Long availableSeats;
     @Enumerated(EnumType.STRING)
     TransportType transportType;
+    @JsonIgnore
     @OneToOne(mappedBy = "transportAd")
     private Reservation reservation;
 
