@@ -1,8 +1,6 @@
 package org.example.campconnect.Config;
-
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
@@ -14,20 +12,14 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .info(new Info()
-                        .title("CampConnect API")
-                        .version("1.0")
-                        .description("Documentation de l'API CampConnect"))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
                 .components(new Components()
-                        .addSecuritySchemes("bearerAuth",
+                        .addSecuritySchemes("Bearer Authentication",
                                 new SecurityScheme()
-                                        .name("bearerAuth")
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
-                                        .in(SecurityScheme.In.HEADER)
-                                        .description("Entrez votre token JWT précédé de 'Bearer '")
-                        ));
+                        )
+                );
     }
 }
