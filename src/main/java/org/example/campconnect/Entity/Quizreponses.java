@@ -2,8 +2,12 @@ package org.example.campconnect.Entity;
 
 
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Data;
 
 @Entity
+@Data
+@Builder
 public class Quizreponses {
 
     @Id

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
 import java.util.List;
+
 @Builder
 @Table(name = "users")
 @Entity

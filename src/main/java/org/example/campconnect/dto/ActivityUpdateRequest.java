@@ -3,7 +3,7 @@ package org.example.campconnect.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class ActivityUpdateRequest {
 
     @Size(min = 3, max = 9, message = "Le nom doit contenir entre 3 et 9 caractères")

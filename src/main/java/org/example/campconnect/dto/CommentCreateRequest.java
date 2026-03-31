@@ -3,11 +3,10 @@ package org.example.campconnect.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+
 public class CommentCreateRequest {
 
     @NotBlank(message = "Le contenu du commentaire est obligatoire")

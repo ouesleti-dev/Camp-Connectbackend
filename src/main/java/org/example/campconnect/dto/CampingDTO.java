@@ -2,7 +2,7 @@ package org.example.campconnect.dto;
 
 import lombok.*;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class CampingDTO {
     private Long campingId;
     private String name;
