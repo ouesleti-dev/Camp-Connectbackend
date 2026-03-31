@@ -87,7 +87,9 @@ public class User {
     @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<PartnerQuiz> quizzes;
-
+    @ManyToOne
+    @JoinColumn(name = "camping_id")
+    private Camping camping;
 
 
 
