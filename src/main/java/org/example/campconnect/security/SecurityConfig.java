@@ -52,6 +52,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ✅ Swagger - IMPORTANT : ces lignes doivent être en premier
                         .requestMatchers(
+                                "/actuator/**",          // ← Ajouter cette ligne
+                                "/campConnect/actuator/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
