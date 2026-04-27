@@ -2,9 +2,9 @@ package org.example.campconnect.Controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Service.IReservationService;
+import org.example.campconnect.dto.ReservationDetailsResponse;
 import org.example.campconnect.dto.ReservationRequest;
 import org.example.campconnect.dto.ReservationResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,6 +33,20 @@ public class ReservationController {
     @GetMapping
     public ResponseEntity<List<ReservationResponse>> getAllReservations() {
         return ResponseEntity.ok(reservationService.getAllReservations());
+    }
+
+    @GetMapping("/details")
+    public ResponseEntity<List<ReservationDetailsResponse>> getDetailedReservations() {
+        return ResponseEntity.ok(reservationService.getDetailedReservations());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ReservationDetailsResponse>> searchByDestinationAndTransportType(
+            @RequestParam String destination,
+            @RequestParam String transportType) {
+        return ResponseEntity.ok(
+                reservationService.searchByDestinationAndTransportType(destination, transportType)
+        );
     }
 
     @GetMapping("/{id}")
