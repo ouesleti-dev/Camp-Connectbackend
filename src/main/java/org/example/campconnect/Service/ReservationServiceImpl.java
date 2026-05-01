@@ -189,7 +189,7 @@ public class ReservationServiceImpl implements IReservationService {
         return toResponse(updated, userEmail);
     }
 
-    // ========================= DELETE =========================
+// ========================= DELETE =========================
 
     @Override
     public void deleteReservation(Long id) {
@@ -200,11 +200,17 @@ public class ReservationServiceImpl implements IReservationService {
         TransportAd ad = reservation.getTransportAd();
 
         if (ad != null) {
+
+            // remettre les places
             ad.setAvailableSeats(ad.getAvailableSeats() + reservation.getSeatCount());
+
+            // casser la relation OneToOne
+            ad.setReservation(null);
+
             transportAdRepository.save(ad);
         }
 
-        reservationRepository.deleteById(id);
+        reservationRepository.delete(reservation);
     }
 
     // ========================= READ =========================

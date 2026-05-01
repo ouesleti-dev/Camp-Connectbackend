@@ -79,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/reservations/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/reservations/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/reservations/**").authenticated()
+                        .requestMatchers("/transport-ai/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/camp/**").hasRole("CAMPOWNER")
                         .requestMatchers("/camper/**").hasRole("CAMPER")
