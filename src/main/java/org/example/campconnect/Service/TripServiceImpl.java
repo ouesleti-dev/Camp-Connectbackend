@@ -20,6 +20,7 @@ public class TripServiceImpl implements ITripService {
     private final TripRepository tripRepository;
     private final VehicleRepository vehicleRepository;
 
+    // ✅ RESPONSE AVEC GPS
     private TripResponse toResponse(Trip trip) {
         Vehicle vehicle = trip.getVehicle();
         return new TripResponse(
@@ -30,7 +31,12 @@ public class TripServiceImpl implements ITripService {
                 trip.getDistance(),
                 vehicle != null ? vehicle.getVehicleId() : null,
                 vehicle != null ? vehicle.getLicensePlate() : null,
-                vehicle != null ? vehicle.getVehicleType() : null
+                vehicle != null ? vehicle.getVehicleType() : null,
+                // 🔥 NEW GPS
+                trip.getDepartureLat(),
+                trip.getDepartureLng(),
+                trip.getDestinationLat(),
+                trip.getDestinationLng()
         );
     }
 
@@ -57,6 +63,7 @@ public class TripServiceImpl implements ITripService {
                 .orElseThrow(() -> new RuntimeException("Vehicule introuvable avec l'id : " + vehicleId));
     }
 
+    // ✅ CREATE AVEC GPS
     @Override
     @Transactional
     public TripResponse createTrip(TripRequest req) {
@@ -70,9 +77,16 @@ public class TripServiceImpl implements ITripService {
         trip.setDistance(req.distance());
         trip.setVehicle(vehicle);
 
+        // 🔥 NEW GPS
+        trip.setDepartureLat(req.departureLat());
+        trip.setDepartureLng(req.departureLng());
+        trip.setDestinationLat(req.destinationLat());
+        trip.setDestinationLng(req.destinationLng());
+
         return toResponse(tripRepository.save(trip));
     }
 
+    // ✅ UPDATE AVEC GPS
     @Override
     @Transactional
     public TripResponse updateTrip(Long id, TripRequest req) {
@@ -87,6 +101,12 @@ public class TripServiceImpl implements ITripService {
         existing.setDepartureDate(req.departureDate());
         existing.setDistance(req.distance());
         existing.setVehicle(vehicle);
+
+        // 🔥 NEW GPS
+        existing.setDepartureLat(req.departureLat());
+        existing.setDepartureLng(req.departureLng());
+        existing.setDestinationLat(req.destinationLat());
+        existing.setDestinationLng(req.destinationLng());
 
         return toResponse(tripRepository.save(existing));
     }

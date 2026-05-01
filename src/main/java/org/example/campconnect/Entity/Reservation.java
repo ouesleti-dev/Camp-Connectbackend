@@ -21,6 +21,7 @@ public class Reservation {
     Date reservationDate ;
     Long seatCount ;
     String status ;
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "transport_ad_id")
     private TransportAd transportAd;
 }

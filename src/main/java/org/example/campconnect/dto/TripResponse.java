@@ -10,5 +10,9 @@ public record TripResponse(
         float distance,
         Long vehicleId,
         String vehicleLicensePlate,
-        String vehicleType
+        String vehicleType,
+        Double departureLat,
+        Double departureLng,
+        Double destinationLat,
+        Double destinationLng
 ) {}

@@ -22,6 +22,10 @@ public class Trip {
     String destination ;
     Date departureDate ;
     float distance ;
+    Double departureLat;
+    Double departureLng;
+    Double destinationLat;
+    Double destinationLng;
     @ManyToOne
     private Vehicle vehicle;
 

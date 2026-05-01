@@ -4,12 +4,10 @@ import org.example.campconnect.Entity.Reservation;
 import org.example.campconnect.Entity.TransportType;
 import org.example.campconnect.dto.ReservationDetailsResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
-
+import org.example.campconnect.dto.GroupedStatResponse;
 import java.util.List;
 
 @Repository
@@ -49,24 +47,40 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("select u.email from User u join u.reservations r where r.reservationId = :reservationId")
     String findUserEmailByReservationId(@Param("reservationId") Long reservationId);
 
-    @Modifying
-    @Transactional
-    @Query(value = "DELETE FROM user_reservations WHERE reservations_reservation_id = :reservationId", nativeQuery = true)
-    void deleteUserReservationLink(@Param("reservationId") Long reservationId);
 
-    @Modifying
-    @Transactional
-    @Query(value = "DELETE FROM reservation WHERE reservation_id = :id", nativeQuery = true)
-    void deleteByIdNative(@Param("id") Long id);
+    @Query("""
+    SELECT COALESCE(SUM(r.seatCount), 0)
+    FROM Reservation r
+""")
+    Long sumReservedSeats();
 
-    @Modifying
-    @Transactional
-    @Query(value = "UPDATE transport_ad SET available_seats = available_seats + :seats WHERE ad_id = :adId", nativeQuery = true)
-    void incrementSeats(@Param("adId") Long adId, @Param("seats") Long seats);
+    @Query("""
+    SELECT COALESCE(SUM(r.seatCount * ad.price), 0)
+    FROM Reservation r
+    JOIN r.transportAd ad
+""")
+    Double calculateTotalRevenue();
 
-    @Query(value = "SELECT transport_ad_ad_id FROM reservation WHERE reservation_id = :id", nativeQuery = true)
-    Long findTransportAdIdByReservationId(@Param("id") Long id);
+    @Query("""
+    SELECT new org.example.campconnect.dto.GroupedStatResponse(
+        CAST(ad.transportType AS string),
+        COUNT(r)
+    )
+    FROM Reservation r
+    JOIN r.transportAd ad
+    GROUP BY ad.transportType
+""")
+    List<GroupedStatResponse> countReservationsByTransportType();
 
-    @Query(value = "SELECT seat_count FROM reservation WHERE reservation_id = :id", nativeQuery = true)
-    Long findSeatCountByReservationId(@Param("id") Long id);
+    @Query("""
+    SELECT new org.example.campconnect.dto.GroupedStatResponse(
+        trip.destination,
+        COUNT(r)
+    )
+    FROM Reservation r
+    JOIN r.transportAd ad
+    JOIN ad.trip trip
+    GROUP BY trip.destination
+""")
+    List<GroupedStatResponse> countReservationsByDestination();
 }

@@ -1,6 +1,12 @@
 package org.example.campconnect.Service;
 
-import org.example.campconnect.Entity.*;
+import org.example.campconnect.Entity.Reservation;
+import org.example.campconnect.Entity.Role;
+import org.example.campconnect.Entity.TransportAd;
+import org.example.campconnect.Entity.TransportType;
+import org.example.campconnect.Entity.Trip;
+import org.example.campconnect.Entity.User;
+import org.example.campconnect.Entity.Vehicle;
 import org.example.campconnect.Repository.ReservationRepository;
 import org.example.campconnect.Repository.TransportAdRepository;
 import org.example.campconnect.Repository.UserRepository;
@@ -19,9 +25,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceTest {
@@ -86,7 +99,6 @@ class ReservationServiceTest {
         );
     }
 
-    // ─── createReservation ────────────────────────────────────────────────
     @Test
     @DisplayName("Should create reservation successfully")
     void shouldCreateReservation() {
@@ -103,6 +115,7 @@ class ReservationServiceTest {
         assertNotNull(result);
         assertEquals(2L, result.seatCount());
         assertEquals("CONFIRMED", result.status());
+        assertEquals(3L, transportAd.getAvailableSeats());
         verify(reservationRepository, times(1)).save(any(Reservation.class));
     }
 
@@ -133,12 +146,10 @@ class ReservationServiceTest {
                 () -> reservationService.createReservation(badRequest, "yossri@gmail.com"));
     }
 
-    // ─── getAllReservations ───────────────────────────────────────────────
     @Test
     @DisplayName("Should return all reservations")
     void shouldReturnAllReservations() {
         when(reservationRepository.findAll()).thenReturn(List.of(reservation));
-        when(reservationRepository.findUserEmailByReservationId(1L)).thenReturn("yossri@gmail.com");
 
         List<ReservationResponse> result = reservationService.getAllReservations();
 
@@ -147,12 +158,10 @@ class ReservationServiceTest {
         assertEquals("CONFIRMED", result.get(0).status());
     }
 
-    // ─── getReservationById ───────────────────────────────────────────────
     @Test
     @DisplayName("Should return reservation by ID")
     void shouldReturnReservationById() {
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
-        when(reservationRepository.findUserEmailByReservationId(1L)).thenReturn("yossri@gmail.com");
 
         ReservationResponse result = reservationService.getReservationById(1L);
 
@@ -169,19 +178,80 @@ class ReservationServiceTest {
                 () -> reservationService.getReservationById(99L));
     }
 
-    // ─── deleteReservation ────────────────────────────────────────────────
+    @Test
+    @DisplayName("Should update reservation on same transport ad and recalculate seats")
+    void shouldUpdateReservationOnSameAd() {
+        transportAd.setAvailableSeats(3L);
+        ReservationRequest updateRequest = new ReservationRequest(
+                new Date(), 4L, "CONFIRMED", 1L
+        );
+
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(transportAdRepository.findById(1L)).thenReturn(Optional.of(transportAd));
+        when(transportAdRepository.save(any(TransportAd.class))).thenReturn(transportAd);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ReservationResponse result = reservationService.updateReservation(
+                1L, updateRequest, "yossri@gmail.com"
+        );
+
+        assertNotNull(result);
+        assertEquals(4L, result.seatCount());
+        assertEquals(1L, result.transportAdId());
+        assertEquals(1L, transportAd.getAvailableSeats());
+    }
+
+    @Test
+    @DisplayName("Should update reservation to another transport ad and rebalance seats")
+    void shouldUpdateReservationToAnotherAd() {
+        TransportAd newAd = new TransportAd();
+        newAd.setAdId(2L);
+        newAd.setPrice(30.0f);
+        newAd.setAvailableSeats(6L);
+        newAd.setTransportType(TransportType.Public_transport);
+        newAd.setTrip(transportAd.getTrip());
+
+        ReservationRequest updateRequest = new ReservationRequest(
+                new Date(), 3L, "CONFIRMED", 2L
+        );
+
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(transportAdRepository.findById(2L)).thenReturn(Optional.of(newAd));
+        when(transportAdRepository.save(any(TransportAd.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ReservationResponse result = reservationService.updateReservation(
+                1L, updateRequest, "yossri@gmail.com"
+        );
+
+        assertNotNull(result);
+        assertEquals(3L, result.seatCount());
+        assertEquals(2L, result.transportAdId());
+        assertEquals(7L, transportAd.getAvailableSeats());
+        assertEquals(3L, newAd.getAvailableSeats());
+    }
+
     @Test
     @DisplayName("Should delete reservation and increment seats back")
     void shouldDeleteReservationAndIncrementSeats() {
-        when(reservationRepository.findTransportAdIdByReservationId(1L)).thenReturn(1L);
-        when(reservationRepository.findSeatCountByReservationId(1L)).thenReturn(2L);
-        doNothing().when(reservationRepository).deleteUserReservationLink(1L);
-        doNothing().when(reservationRepository).incrementSeats(1L, 2L);
-        doNothing().when(reservationRepository).deleteByIdNative(1L);
+        user.getReservations().add(reservation);
+        transportAd.setAvailableSeats(3L);
+
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(userRepository.findAll()).thenReturn(List.of(user));
+        when(transportAdRepository.save(any(TransportAd.class))).thenReturn(transportAd);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        doNothing().when(reservationRepository).delete(reservation);
 
         assertDoesNotThrow(() -> reservationService.deleteReservation(1L));
-        verify(reservationRepository, times(1)).deleteUserReservationLink(1L);
-        verify(reservationRepository, times(1)).incrementSeats(1L, 2L);
-        verify(reservationRepository, times(1)).deleteByIdNative(1L);
+
+        assertEquals(5L, transportAd.getAvailableSeats());
+        assertTrue(user.getReservations().isEmpty());
+
+        verify(reservationRepository, times(1)).findById(1L);
+        verify(transportAdRepository, times(1)).save(transportAd);
+        verify(userRepository, times(1)).findAll();
+        verify(userRepository, times(1)).save(user);
+        verify(reservationRepository, times(1)).delete(reservation);
     }
 }

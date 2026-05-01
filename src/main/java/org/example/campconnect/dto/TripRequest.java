@@ -7,5 +7,9 @@ public record TripRequest(
         String destination,
         Date departureDate,
         float distance,
-        Long vehicleId
+        Long vehicleId,
+        Double departureLat,
+        Double departureLng,
+        Double destinationLat,
+        Double destinationLng
 ) {}

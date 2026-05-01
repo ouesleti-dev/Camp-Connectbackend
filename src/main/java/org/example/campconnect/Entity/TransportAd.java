@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -22,8 +25,8 @@ public class TransportAd {
     @Enumerated(EnumType.STRING)
     TransportType transportType;
     @JsonIgnore
-    @OneToOne(mappedBy = "transportAd")
-    private Reservation reservation;
+    @OneToMany(mappedBy = "transportAd")
+    private List<Reservation> reservations = new ArrayList<>();
 
     @OneToOne
     private Trip trip;
