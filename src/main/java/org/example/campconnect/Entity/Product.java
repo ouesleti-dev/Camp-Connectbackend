@@ -22,6 +22,8 @@ public class Product {
     String descriptionProduct;
     Double priceProduct;
     Integer quantityProduct;
+
+    @Column(columnDefinition = "LONGTEXT")
     String photoProduct;
     @Enumerated(EnumType.STRING)
     ProductState productState;

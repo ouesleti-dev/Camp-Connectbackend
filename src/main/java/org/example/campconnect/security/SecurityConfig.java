@@ -81,6 +81,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,    "/review/equipment/**").permitAll()       // ← GET en SECOND
                         .requestMatchers(HttpMethod.PUT,    "/review/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/review/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/equipment/stats").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/equipment/search").permitAll()
+                        .requestMatchers("/demand/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/story/active").permitAll()
+                        .requestMatchers(HttpMethod.GET,    "/story/my").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/story").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/story/*/apply-promo").authenticated()
+                        .requestMatchers(HttpMethod.PUT,    "/story/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/story/**").authenticated()
                         // ✅ Rôles
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/camp/**").hasRole("CAMPOWNER")

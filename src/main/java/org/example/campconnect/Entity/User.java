@@ -71,7 +71,8 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<PartnerQuiz> quizzes;
-
+    @OneToMany(mappedBy = "user")
+    private List<Story> stories;
 
 
 

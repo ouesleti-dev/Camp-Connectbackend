@@ -2,10 +2,13 @@ package org.example.campconnect.Controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Entity.Equipment;
+import org.example.campconnect.Entity.State;
+import org.example.campconnect.Entity.Type;
 import org.example.campconnect.Repository.EquipmentRepository;
 import org.example.campconnect.Service.IEquipmentService;
 import org.example.campconnect.dto.EquipmentRequestDto;
 import org.example.campconnect.dto.EquipmentResponseDto;
+import org.example.campconnect.dto.EquipmentStatsDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -84,5 +87,16 @@ public class EquipmentController {
 
         String ownerEmail = isAdmin ? null : email;
         return ResponseEntity.ok(equipmentService.updateEquipment(id, dto, ownerEmail));
+    }
+    @GetMapping("/stats")
+    public ResponseEntity<List<EquipmentStatsDto>> getStats() {
+        return ResponseEntity.ok(equipmentService.getEquipmentStats());
+    }
+    @GetMapping("/search")
+    public ResponseEntity<List<EquipmentResponseDto>> search(
+            @RequestParam(required = false) Type type,
+            @RequestParam(required = false) State state,
+            @RequestParam(required = false) Float maxPrice) {
+        return ResponseEntity.ok(equipmentService.searchEquipments(type, state, maxPrice));
     }
 }

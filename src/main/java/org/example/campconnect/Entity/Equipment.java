@@ -32,4 +32,6 @@ public class Equipment {
     String picture;
     @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rental> rentals;
+    @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Story> stories;
 }

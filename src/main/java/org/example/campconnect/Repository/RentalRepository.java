@@ -25,5 +25,8 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
     );
     @Query("SELECT r FROM Rental r WHERE r.equipment.idEquipement = :equipmentId AND r.verified = true")
     List<Rental> findAcceptedRentalsByEquipment(Long equipmentId);
+    // Dans RentalRepository.java — ajoute cette méthode
+    @Query("SELECT r FROM Rental r WHERE r.verified = true AND r.enddate < :now")
+    List<Rental> findExpiredAcceptedRentals(@Param("now") Date now);
 
 }

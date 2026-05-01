@@ -3,11 +3,13 @@ package org.example.campconnect.Service;
 import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Entity.Equipment;
 import org.example.campconnect.Entity.State;
+import org.example.campconnect.Entity.Type;
 import org.example.campconnect.Repository.EquipmentRepository;
 import org.example.campconnect.Repository.RentalRepository;
 import org.example.campconnect.Repository.ReviewRepository;
 import org.example.campconnect.dto.EquipmentRequestDto;
 import org.example.campconnect.dto.EquipmentResponseDto;
+import org.example.campconnect.dto.EquipmentStatsDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class IEquipmentServiceImp implements IEquipmentService {
         dto.setState(equipment.getState());
         dto.setPrice(equipment.getPrice());
         dto.setPicture(equipment.getPicture());
+        dto.setAverageRating(0.0);
         return dto;
     }
     @Override
@@ -62,10 +65,7 @@ public class IEquipmentServiceImp implements IEquipmentService {
     // ✅ Corrigé : retourne les équipements vérifiés
     @Override
     public List<EquipmentResponseDto> getVerifiedEquipments() {
-        return equipmentRepository.findByVerifiedTrue()
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return equipmentRepository.findVerifiedEquipmentsWithRating();
     }
 
     @Override
@@ -112,5 +112,24 @@ public class IEquipmentServiceImp implements IEquipmentService {
 
         return toDto(equipmentRepository.save(equipment));
     }
+    @Override
+    public List<EquipmentStatsDto> getEquipmentStats() {
+        return equipmentRepository.findEquipmentWithStats();
+    }
+    @Override
+    public List<EquipmentResponseDto> searchEquipments(Type type, State state, Float maxPrice) {
+        List<Equipment> results;
 
+        if (type != null && state != null && maxPrice != null) {
+            results = equipmentRepository
+                    .findByTypeAndStateAndPriceLessThanEqualAndVerifiedTrue(type, state, maxPrice);
+        } else if (type != null && maxPrice != null) {
+            results = equipmentRepository
+                    .findByVerifiedTrueAndTypeAndPriceLessThanEqual(type, maxPrice);
+        } else {
+            results = equipmentRepository.findByVerifiedTrue();
+        }
+
+        return results.stream().map(this::toDto).collect(Collectors.toList());
+    }
 }
