@@ -59,6 +59,7 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
                         .requestMatchers("/api/maintenance/predict/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/recommend").authenticated()
 
                         // ✅ Auth endpoints
                         .requestMatchers("/auth/**").permitAll()
