@@ -58,6 +58,8 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+                        .requestMatchers("/api/maintenance/predict/**").authenticated()
+
                         // ✅ Auth endpoints
                         .requestMatchers("/auth/**").permitAll()
                         // ✅ Equipement
