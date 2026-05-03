@@ -62,6 +62,8 @@ public class SecurityConfig {
                                 ).permitAll()
                                 // ✅ Auth endpoints
                                 .requestMatchers("/auth/**").permitAll()
+                                // ✅ Recommendations - public
+                                .requestMatchers(HttpMethod.GET, "/api/recommendations/**").permitAll()
                                 .requestMatchers("/api/orders/**").authenticated()
                                 // Products - public
                                 .requestMatchers(HttpMethod.GET, "/api/products/approved").permitAll()

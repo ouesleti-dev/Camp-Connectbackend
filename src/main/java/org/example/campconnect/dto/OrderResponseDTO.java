@@ -22,6 +22,8 @@ public class OrderResponseDTO {
     private List<OrderLineDTO> orderLines;
     private String orderStatus;
     private String customerPhone;
+    private String couponCode;
+    private Double discountAmount;
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class OrderLineDTO {

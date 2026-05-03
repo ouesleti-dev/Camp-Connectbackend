@@ -25,6 +25,8 @@ public class Order {
     @Column(nullable = false)
     @Builder.Default
     String orderStatus = "PENDING";
+    String couponCode;
+    Double discountAmount;
     @ManyToOne
     private User user;
 

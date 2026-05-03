@@ -22,10 +22,14 @@ public class ProductResponseDTO {
     private Integer quantityProduct;
     private String photoProduct;
     private String locationProduct;
+    private Double latitude;
+    private Double longitude;
     private Category category;
     private ProductState productState;
     private ProductStatus productStatus;
     private Date addedDate;
     private Long userId;
     private String sellerName;
+    private Double averageRating;
+    private Long reviewCount;
 }

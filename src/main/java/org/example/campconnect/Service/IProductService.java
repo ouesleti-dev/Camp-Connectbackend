@@ -2,6 +2,7 @@ package org.example.campconnect.Service;
 
 import org.example.campconnect.dto.ProductRequestDTO;
 import org.example.campconnect.dto.ProductResponseDTO;
+import org.example.campconnect.dto.ProductSalesStatsDTO;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface IProductService {
     void deleteProduct(Long id);
     ProductResponseDTO approveProduct(Long id);
     ProductResponseDTO rejectProduct(Long id);
+    List<ProductSalesStatsDTO> getProductSalesStats();
+    List<ProductResponseDTO> getProductsNearby(Double lat, Double lng, Double radiusKm);
 }

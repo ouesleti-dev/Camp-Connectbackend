@@ -5,9 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Entity.*;
 import org.example.campconnect.Repository.*;
 import org.example.campconnect.dto.DeliveryResponseDTO;
+import org.example.campconnect.dto.DeliveryStatsDTO;
 import org.example.campconnect.dto.TakeDeliveryRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,6 +83,45 @@ public class DeliveryService implements IDeliveryService {
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeliveryStatsDTO> getTopDeliveryPersonStats() {
+        // Uses keyword query: group by delivery person, count per state
+        return deliveryRepository.findAll().stream()
+                .filter(d -> d.getDeliveryPerson() != null)
+                .collect(Collectors.groupingBy(d -> d.getDeliveryPerson()))
+                .entrySet().stream()
+                .map(entry -> {
+                    User person = entry.getKey();
+                    List<Delivery> deliveries = entry.getValue();
+                    return DeliveryStatsDTO.builder()
+                            .deliveryPersonId(person.getIdUser())
+                            .deliveryPersonName(person.getFirstName() + " " + person.getLastName())
+                            .deliveryPersonPhone(person.getPhone())
+                            .completedDeliveries(deliveries.stream()
+                                    .filter(d -> d.getDeliverystate() == DeliveryState.DELIVERED).count())
+                            .pendingDeliveries(deliveries.stream()
+                                    .filter(d -> d.getDeliverystate() == DeliveryState.PENDING).count())
+                            .cancelledDeliveries(deliveries.stream()
+                                    .filter(d -> d.getDeliverystate() == DeliveryState.CANCELLED).count())
+                            .onTheWayDeliveries(deliveries.stream()
+                                    .filter(d -> d.getDeliverystate() == DeliveryState.ON_THE_WAY).count())
+                            .build();
+                })
+                // Only return delivery persons with at least 1 completed delivery
+                .filter(s -> s.getCompletedDeliveries() > 0)
+                .sorted(Comparator.comparingLong(DeliveryStatsDTO::getCompletedDeliveries).reversed())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeliveryResponseDTO> getDeliveriesForCustomer(Long customerId) {
+        // Uses keyword query: Delivery → Order → User (customer)
+        return deliveryRepository
+                .findByDeliverystateAndOrderUserIdUser(DeliveryState.ON_THE_WAY, customerId)
+                .stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     private DeliveryResponseDTO toDTO(Delivery d) {

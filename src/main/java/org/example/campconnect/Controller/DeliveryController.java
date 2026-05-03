@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Service.DeliveryService;
 import org.example.campconnect.Service.IDeliveryService;
 import org.example.campconnect.dto.DeliveryResponseDTO;
+import org.example.campconnect.dto.DeliveryStatsDTO;
 import org.example.campconnect.dto.TakeDeliveryRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,5 +57,15 @@ public class DeliveryController {
     public ResponseEntity<List<DeliveryResponseDTO>> getByOrder(
             @PathVariable Long orderId) {
         return ResponseEntity.ok(deliveryService.getDeliveriesByOrder(orderId));
+    }
+    @GetMapping("/stats/top-performers")
+    public ResponseEntity<List<DeliveryStatsDTO>> getTopPerformers() {
+        return ResponseEntity.ok(deliveryService.getTopDeliveryPersonStats());
+    }
+
+    @GetMapping("/customer/{customerId}/active")
+    public ResponseEntity<List<DeliveryResponseDTO>> getActiveForCustomer(
+            @PathVariable Long customerId) {
+        return ResponseEntity.ok(deliveryService.getDeliveriesForCustomer(customerId));
     }
 }

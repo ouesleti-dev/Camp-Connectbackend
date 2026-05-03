@@ -31,6 +31,8 @@ public class Product {
     @Enumerated(EnumType.STRING)
     ProductState productState;
     String locationProduct;
+    Double latitude;
+    Double longitude;
     Date addedDate;
     @JsonIgnore
     @OneToMany(mappedBy = "product")

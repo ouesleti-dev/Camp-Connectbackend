@@ -22,6 +22,7 @@ public class OrderService implements IOrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final DeliveryRepository deliveryRepository;
+    private final CouponRepository couponRepository;
     @Override
     @Transactional
     public Order createOrder(OrderRequest request) {
@@ -71,9 +72,27 @@ public class OrderService implements IOrderService {
             lines.add(orderLineRepository.save(line));
         }
 
-        // 3. Update order with lines and total
+        // 3. Apply coupon if provided
+        double discountAmount = 0.0;
+        String couponCode = null;
+        if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
+            Coupon coupon = couponRepository.findByCode(request.getCouponCode().toUpperCase()).orElse(null);
+            if (coupon != null && coupon.getActive()
+                    && coupon.getExpirationDate().after(new Date())
+                    && coupon.getCurrentUses() < coupon.getMaxUses()) {
+                discountAmount = total * coupon.getDiscountPercentage() / 100.0;
+                total -= discountAmount;
+                coupon.setCurrentUses(coupon.getCurrentUses() + 1);
+                couponRepository.save(coupon);
+                couponCode = coupon.getCode();
+            }
+        }
+
+        // 4. Update order with lines, total and coupon info
         savedOrder.setOrderLines(lines);
-        savedOrder.setTotalAmount(total);
+        savedOrder.setTotalAmount(Math.round(total * 100.0) / 100.0);
+        savedOrder.setDiscountAmount(discountAmount > 0 ? Math.round(discountAmount * 100.0) / 100.0 : null);
+        savedOrder.setCouponCode(couponCode);
         return orderRepository.save(savedOrder);
     }
     @Override
@@ -172,6 +191,8 @@ public class OrderService implements IOrderService {
                 .userLastName(order.getUser() != null ? order.getUser().getLastName() : null)
                 .userEmail(order.getUser() != null ? order.getUser().getEmail() : null)
                 .customerPhone(order.getUser() != null ? order.getUser().getPhone() : null)
+                .couponCode(order.getCouponCode())
+                .discountAmount(order.getDiscountAmount())
                 .orderLines(lineDTOs)
                 .build();
     }

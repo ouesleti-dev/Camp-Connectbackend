@@ -34,6 +34,9 @@ public class ProductRequestDTO {
     @NotBlank(message = "Location is required")
     private String locationProduct;
 
+    private Double latitude;
+    private Double longitude;
+
     @NotNull(message = "Category is required")
     private Category category;
 

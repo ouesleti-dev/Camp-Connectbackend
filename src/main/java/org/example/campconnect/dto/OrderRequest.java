@@ -16,4 +16,5 @@ public class OrderRequest {
     private String deliveryAddress;
     private String paymentMethod;
     private List<OrderLineRequest> items;
+    private String couponCode;
 }

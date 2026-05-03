@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Service.IProductService;
 import org.example.campconnect.dto.ProductRequestDTO;
 import org.example.campconnect.dto.ProductResponseDTO;
+import org.example.campconnect.dto.ProductSalesStatsDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,5 +74,16 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> reject(@PathVariable Long id) {
         return ResponseEntity.ok(productService.rejectProduct(id));
     }
+    @GetMapping("/sales-stats")
+    public ResponseEntity<List<ProductSalesStatsDTO>> getSalesStats() {
+        return ResponseEntity.ok(productService.getProductSalesStats());
+    }
 
+    @GetMapping("/nearby")
+    public ResponseEntity<List<ProductResponseDTO>> getNearby(
+            @RequestParam Double lat,
+            @RequestParam Double lng,
+            @RequestParam(defaultValue = "50") Double radius) {
+        return ResponseEntity.ok(productService.getProductsNearby(lat, lng, radius));
+    }
 }
