@@ -1,14 +1,13 @@
 package org.example.campconnect.Service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.campconnect.Entity.Reservation;
-import org.example.campconnect.Entity.TransportAd;
-import org.example.campconnect.Entity.TransportType;
-import org.example.campconnect.Entity.Trip;
-import org.example.campconnect.Entity.User;
+import org.example.campconnect.Entity.*;
+import org.example.campconnect.Repository.OptionServiceRepository;
 import org.example.campconnect.Repository.ReservationRepository;
 import org.example.campconnect.Repository.TransportAdRepository;
 import org.example.campconnect.Repository.UserRepository;
+import org.example.campconnect.dto.OptionServiceResponse;
+import org.example.campconnect.dto.OptionResponse;
 import org.example.campconnect.dto.ReservationDetailsResponse;
 import org.example.campconnect.dto.ReservationRequest;
 import org.example.campconnect.dto.ReservationResponse;
@@ -18,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +27,18 @@ public class ReservationServiceImpl implements IReservationService {
     private final ReservationRepository reservationRepository;
     private final TransportAdRepository transportAdRepository;
     private final UserRepository userRepository;
+    private final OptionServiceRepository optionServiceRepository;
+
+    private OptionResponse toOptionResponse(OptionService optionService) {
+        return new OptionResponse(
+                optionService.getOptionId(),
+                optionService.getName(),
+                optionService.getPrice(),
+                optionService.getOptionType() != null
+                        ? optionService.getOptionType().name()
+                        : null
+        );
+    }
 
     private ReservationResponse toResponse(Reservation reservation, String userEmail) {
         TransportAd ad = reservation.getTransportAd();
@@ -39,9 +51,16 @@ public class ReservationServiceImpl implements IReservationService {
                 reservation.getStatus(),
                 ad != null ? ad.getAdId() : null,
                 ad != null ? ad.getPrice() : 0,
+                reservation.getTotalPrice(),
                 trip != null ? trip.getDepartureLocation() : null,
                 trip != null ? trip.getDestination() : null,
-                userEmail
+                userEmail,
+                reservation.getSelectedOptions() != null
+                        ? reservation.getSelectedOptions()
+                        .stream()
+                        .map(this::toOptionResponse)
+                        .toList()
+                        : List.of()
         );
     }
 
@@ -112,6 +131,38 @@ public class ReservationServiceImpl implements IReservationService {
                 && currentAd.getAdId().equals(requestedAd.getAdId());
     }
 
+    private List<OptionService> getSelectedOptions(ReservationRequest req) {
+        if (req.optionIds() == null || req.optionIds().isEmpty()) {
+            return List.of();
+        }
+
+        return optionServiceRepository.findAllById(req.optionIds());
+    }
+
+    private Float calculateTotalPrice(TransportAd ad, Long seatCount, List<OptionService> selectedOptions) {
+        float adPrice = ad != null ? ad.getPrice() : 0f;
+        long seats = seatCount(seatCount);
+
+        float optionsTotal = selectedOptions == null
+                ? 0f
+                : selectedOptions.stream()
+                .map(OptionService::getPrice)
+                .filter(Objects::nonNull)
+                .reduce(0f, Float::sum);
+
+        return (adPrice * seats) + optionsTotal;
+    }
+
+    private void applyOptionsAndTotalPrice(
+            Reservation reservation,
+            TransportAd ad,
+            ReservationRequest req
+    ) {
+        List<OptionService> selectedOptions = getSelectedOptions(req);
+        reservation.setSelectedOptions(selectedOptions);
+        reservation.setTotalPrice(calculateTotalPrice(ad, req.seatCount(), selectedOptions));
+    }
+
     private void detachReservationFromUsers(Long reservationId) {
         userRepository.findAll().forEach(user -> {
             if (user.getReservations() != null) {
@@ -152,6 +203,8 @@ public class ReservationServiceImpl implements IReservationService {
         reservation.setStatus(req.status());
         reservation.setTransportAd(ad);
 
+        applyOptionsAndTotalPrice(reservation, ad, req);
+
         Reservation saved = reservationRepository.save(reservation);
 
         ad.setAvailableSeats(availableSeats(ad) - req.seatCount());
@@ -180,6 +233,7 @@ public class ReservationServiceImpl implements IReservationService {
 
         if (isSameTransportAd(currentAd, requestedAd)) {
             long additionalSeats = req.seatCount() - previousSeatCount;
+
             if (additionalSeats > 0) {
                 ensureSeatsAvailable(currentAd, additionalSeats);
             }
@@ -203,6 +257,8 @@ public class ReservationServiceImpl implements IReservationService {
         reservation.setStatus(req.status());
         reservation.setTransportAd(requestedAd);
 
+        applyOptionsAndTotalPrice(reservation, requestedAd, req);
+
         Reservation updated = reservationRepository.save(reservation);
 
         return toResponse(updated, userEmail);
@@ -217,9 +273,11 @@ public class ReservationServiceImpl implements IReservationService {
 
         if (ad != null) {
             ad.setAvailableSeats(availableSeats(ad) + seatCount(reservation.getSeatCount()));
+
             if (ad.getReservations() != null) {
                 ad.getReservations().removeIf(r -> r != null && id.equals(r.getReservationId()));
             }
+
             transportAdRepository.save(ad);
         }
 
@@ -232,14 +290,15 @@ public class ReservationServiceImpl implements IReservationService {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reservation introuvable"));
 
-        return toResponse(reservation, null);
+        String userEmail = reservationRepository.findUserEmailByReservationId(id);
+        return toResponse(reservation, userEmail);
     }
 
     @Override
     public List<ReservationResponse> getAllReservations() {
         return reservationRepository.findAll()
                 .stream()
-                .map(r -> toResponse(r, null))
+                .map(r -> toResponse(r, reservationRepository.findUserEmailByReservationId(r.getReservationId())))
                 .toList();
     }
 
@@ -247,7 +306,7 @@ public class ReservationServiceImpl implements IReservationService {
     public List<ReservationResponse> getByStatus(String status) {
         return reservationRepository.findByStatus(status)
                 .stream()
-                .map(r -> toResponse(r, null))
+                .map(r -> toResponse(r, reservationRepository.findUserEmailByReservationId(r.getReservationId())))
                 .toList();
     }
 
@@ -263,7 +322,7 @@ public class ReservationServiceImpl implements IReservationService {
     public List<ReservationResponse> getByTransportAdId(Long transportAdId) {
         return reservationRepository.findByTransportAdAdId(transportAdId)
                 .stream()
-                .map(r -> toResponse(r, null))
+                .map(r -> toResponse(r, reservationRepository.findUserEmailByReservationId(r.getReservationId())))
                 .toList();
     }
 

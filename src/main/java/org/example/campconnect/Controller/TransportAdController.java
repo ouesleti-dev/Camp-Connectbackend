@@ -2,11 +2,14 @@ package org.example.campconnect.Controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Service.ITransportAdService;
+import org.example.campconnect.dto.MyTransportAdDetailsResponse;
 import org.example.campconnect.dto.TransportAdRequest;
 import org.example.campconnect.dto.TransportAdResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -65,5 +68,11 @@ public class TransportAdController {
     public ResponseEntity<String> deleteTransportAd(@PathVariable Long id) {
         transportAdService.deleteTransportAd(id);
         return ResponseEntity.ok("TransportAd supprime avec succes");
+    }
+
+    @GetMapping("/my-ads-details")
+    public ResponseEntity<List<MyTransportAdDetailsResponse>> getMyAdsDetails(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(transportAdService.getMyAdsDetails(userDetails.getUsername()));
     }
 }

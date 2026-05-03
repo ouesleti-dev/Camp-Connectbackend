@@ -1,5 +1,6 @@
 package org.example.campconnect.Service;
 
+import org.example.campconnect.dto.MyTransportAdDetailsResponse;
 import org.example.campconnect.dto.TransportAdRequest;
 import org.example.campconnect.dto.TransportAdResponse;
 
@@ -15,4 +16,5 @@ public interface ITransportAdService {
     List<TransportAdResponse> getByAvailableSeats(Long minSeats);
     List<TransportAdResponse> getByMaxPrice(float maxPrice);
     List<TransportAdResponse> getByTripId(Long tripId);
+    List<MyTransportAdDetailsResponse> getMyAdsDetails(String connectedUserEmail);
 }

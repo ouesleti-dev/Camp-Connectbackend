@@ -23,10 +23,12 @@ public class OptionServiceServiceImpl implements IOptionServiceService {
 
     private OptionServiceResponse toResponse(OptionService optionService) {
         Vehicle vehicle = optionService.getVehicle();
+
         return new OptionServiceResponse(
                 optionService.getOptionId(),
                 optionService.getName(),
-                optionService.getOptionType().name(),
+                optionService.getPrice(), // ✅ ajout du price
+                optionService.getOptionType() != null ? optionService.getOptionType().name() : null,
                 vehicle != null ? vehicle.getVehicleId() : null,
                 vehicle != null ? vehicle.getLicensePlate() : null,
                 vehicle != null ? vehicle.getVehicleType() : null
@@ -39,6 +41,12 @@ public class OptionServiceServiceImpl implements IOptionServiceService {
         }
     }
 
+    private void validatePrice(Float price) {
+        if (price == null || price < 0) {
+            throw new IllegalArgumentException("Le prix doit être positif");
+        }
+    }
+
     private OptionType parseOptionType(String optionType) {
         if (optionType == null || optionType.isBlank()) {
             throw new IllegalArgumentException("Le type d'option est requis");
@@ -48,7 +56,7 @@ public class OptionServiceServiceImpl implements IOptionServiceService {
             return OptionType.valueOf(optionType.trim());
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException(
-                    "Type d'option invalide. Valeurs autorisees: " + Arrays.toString(OptionType.values())
+                    "Type d'option invalide. Valeurs autorisées : " + Arrays.toString(OptionType.values())
             );
         }
     }
@@ -59,18 +67,22 @@ public class OptionServiceServiceImpl implements IOptionServiceService {
         }
 
         return vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new RuntimeException("Vehicule introuvable avec l'id : " + vehicleId));
+                .orElseThrow(() -> new RuntimeException("Véhicule introuvable avec l'id : " + vehicleId));
     }
 
     @Override
     @Transactional
     public OptionServiceResponse createOptionService(OptionServiceRequest req) {
+
         validateName(req.name());
+        validatePrice(req.price()); // ✅ validation du prix
+
         OptionType optionType = parseOptionType(req.optionType());
         Vehicle vehicle = getVehicleById(req.vehicleId());
 
         OptionService optionService = new OptionService();
         optionService.setName(req.name().trim());
+        optionService.setPrice(req.price()); // ✅ ajout du price
         optionService.setOptionType(optionType);
         optionService.setVehicle(vehicle);
 
@@ -80,7 +92,10 @@ public class OptionServiceServiceImpl implements IOptionServiceService {
     @Override
     @Transactional
     public OptionServiceResponse updateOptionService(Long id, OptionServiceRequest req) {
+
         validateName(req.name());
+        validatePrice(req.price()); // ✅ validation du prix
+
         OptionType optionType = parseOptionType(req.optionType());
         Vehicle vehicle = getVehicleById(req.vehicleId());
 
@@ -88,6 +103,7 @@ public class OptionServiceServiceImpl implements IOptionServiceService {
                 .orElseThrow(() -> new RuntimeException("OptionService introuvable avec l'id : " + id));
 
         existing.setName(req.name().trim());
+        existing.setPrice(req.price()); // ✅ mise à jour du price
         existing.setOptionType(optionType);
         existing.setVehicle(vehicle);
 
@@ -99,7 +115,8 @@ public class OptionServiceServiceImpl implements IOptionServiceService {
     public void deleteOptionService(Long id) {
         OptionService existing = optionServiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("OptionService introuvable avec l'id : " + id));
-        optionServiceRepository.deleteById(existing.getOptionId());
+
+        optionServiceRepository.delete(existing);
     }
 
     @Override
@@ -120,6 +137,7 @@ public class OptionServiceServiceImpl implements IOptionServiceService {
     @Override
     public List<OptionServiceResponse> getByOptionType(String optionType) {
         OptionType parsedType = parseOptionType(optionType);
+
         return optionServiceRepository.findByOptionType(parsedType)
                 .stream()
                 .map(this::toResponse)

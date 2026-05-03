@@ -4,8 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.example.campconnect.Entity.TransportAd;
 import org.example.campconnect.Entity.TransportType;
 import org.example.campconnect.Entity.Trip;
+import org.example.campconnect.Entity.User;
+import org.example.campconnect.Entity.Vehicle;
+import org.example.campconnect.Repository.ReservationRepository;
 import org.example.campconnect.Repository.TransportAdRepository;
 import org.example.campconnect.Repository.TripRepository;
+import org.example.campconnect.Repository.UserRepository;
+import org.example.campconnect.dto.AdReservationUserDetailResponse;
+import org.example.campconnect.dto.MyTransportAdDetailsResponse;
+import org.example.campconnect.dto.OptionResponse;
 import org.example.campconnect.dto.TransportAdRequest;
 import org.example.campconnect.dto.TransportAdResponse;
 import org.springframework.stereotype.Service;
@@ -20,6 +27,8 @@ public class TransportAdServiceImpl implements ITransportAdService {
 
     private final TransportAdRepository transportAdRepository;
     private final TripRepository tripRepository;
+    private final UserRepository userRepository;
+    private final ReservationRepository reservationRepository;
 
     private TransportAdResponse toResponse(TransportAd ad) {
         Trip trip = ad.getTrip();
@@ -169,6 +178,65 @@ public class TransportAdServiceImpl implements ITransportAdService {
         return transportAdRepository.findByTripTripId(tripId)
                 .stream()
                 .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MyTransportAdDetailsResponse> getMyAdsDetails(String connectedUserEmail) {
+        User user = userRepository.findByEmail(connectedUserEmail).orElse(null);
+        if (user == null || user.getVehicles() == null) {
+            return List.of();
+        }
+
+        return user.getVehicles().stream()
+                .filter(vehicle -> vehicle.getTrips() != null)
+                .flatMap(vehicle -> vehicle.getTrips().stream())
+                .filter(trip -> trip.getTransportAd() != null)
+                .map(trip -> {
+                    TransportAd ad = trip.getTransportAd();
+                    Vehicle vehicle = trip.getVehicle();
+                    List<AdReservationUserDetailResponse> reservations = reservationRepository
+                            .findByTransportAdIdWithOptions(ad.getAdId())
+                            .stream()
+                            .map(reservation -> {
+                                String userEmail = reservationRepository.findUserEmailByReservationId(reservation.getReservationId());
+                                String userPhone = reservationRepository.findUserPhoneByReservationId(reservation.getReservationId());
+                                List<OptionResponse> options = reservation.getSelectedOptions() != null
+                                        ? reservation.getSelectedOptions().stream()
+                                        .map(option -> new OptionResponse(
+                                                option.getOptionId(),
+                                                option.getName(),
+                                                option.getPrice(),
+                                                option.getOptionType() != null ? option.getOptionType().name() : null
+                                        ))
+                                        .toList()
+                                        : List.of();
+                                return new AdReservationUserDetailResponse(
+                                        reservation.getReservationId(),
+                                        userEmail,
+                                        userPhone,
+                                        reservation.getSeatCount(),
+                                        reservation.getTotalPrice(),
+                                        reservation.getStatus(),
+                                        reservation.getReservationDate(),
+                                        options
+                                );
+                            })
+                            .toList();
+                    return new MyTransportAdDetailsResponse(
+                            ad.getAdId(),
+                            ad.getPrice(),
+                            ad.getAvailableSeats(),
+                            ad.getTransportType() != null ? ad.getTransportType().name() : null,
+                            trip.getDepartureLocation(),
+                            trip.getDestination(),
+                            vehicle.getVehicleId(),
+                            vehicle.getLicensePlate(),
+                            vehicle.getVehicleType(),
+                            reservations
+                    );
+                })
                 .toList();
     }
 }
