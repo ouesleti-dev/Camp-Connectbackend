@@ -14,8 +14,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class IRentalServiceImp implements IRentalService {
 
-    private final RentalRepository rentalRepository;
-    private final EquipmentRepository equipmentRepository;
+    private final RentalRepository      rentalRepository;
+    private final EquipmentRepository   equipmentRepository;
+    private final MaintenanceRepository maintenanceRepository; // ← AJOUTÉ
 
     @Override
     public RentalResponseDto requestRental(RentalRequestDto dto, String renterEmail) {
@@ -32,6 +33,14 @@ public class IRentalServiceImp implements IRentalService {
         );
         if (conflict) {
             throw new RuntimeException("Equipment not available for these dates");
+        }
+
+        // ← AJOUTÉ : Bloquer si maintenance planifiée sur ces dates
+        if (maintenanceRepository.existsOverlappingMaintenance(
+                dto.getEquipmentId(),
+                dto.getStartDate(), dto.getEndDate())) {
+            throw new RuntimeException(
+                    "Equipment is under maintenance during this period");
         }
 
         // Calcul montant total
@@ -62,9 +71,7 @@ public class IRentalServiceImp implements IRentalService {
             throw new RuntimeException("Unauthorized");
         }
 
-        // verified = true → accepté
         rental.setVerified(true);
-
 
         return toDto(rentalRepository.save(rental));
     }
@@ -94,18 +101,17 @@ public class IRentalServiceImp implements IRentalService {
         dto.setEquipmentName(r.getEquipment().getName());
         return dto;
     }
+
     @Override
     public void deleteRental(Long rentalId, String email) {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Rental not found"));
 
-        // ✅ Seul le renter ou le owner peut supprimer
         if (!rental.getRenterEmail().equalsIgnoreCase(email) &&
                 !rental.getOwnerEmail().equalsIgnoreCase(email)) {
             throw new RuntimeException("Not authorized");
         }
 
-        // ✅ Ne peut pas supprimer une location déjà acceptée
         if (Boolean.TRUE.equals(rental.getVerified())) {
             throw new RuntimeException("Cannot delete an accepted rental");
         }
@@ -118,19 +124,16 @@ public class IRentalServiceImp implements IRentalService {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Rental not found"));
 
-        // ✅ Seul le renter peut modifier
         if (!rental.getRenterEmail().equalsIgnoreCase(email)) {
             throw new RuntimeException("Not authorized");
         }
 
-        // ✅ Ne peut pas modifier une location déjà acceptée
         if (Boolean.TRUE.equals(rental.getVerified())) {
             throw new RuntimeException("Cannot update an accepted rental");
         }
 
         Equipment equipment = rental.getEquipment();
 
-        // ✅ Vérifie pas de conflit de dates
         boolean conflict = rentalRepository.existsConflictingRental(
                 equipment.getIdEquipement(), dto.getStartDate(), dto.getEndDate()
         );
@@ -138,7 +141,6 @@ public class IRentalServiceImp implements IRentalService {
             throw new RuntimeException("Equipment not available for these dates");
         }
 
-        // ✅ Recalcul montant
         long diffMs = dto.getEndDate().getTime() - dto.getStartDate().getTime();
         long days = TimeUnit.MILLISECONDS.toDays(diffMs);
         if (days < 1) days = 1;

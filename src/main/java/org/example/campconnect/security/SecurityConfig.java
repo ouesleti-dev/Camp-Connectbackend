@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider())
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Swagger - IMPORTANT : ces lignes doivent être en premier
+                        // ✅ Swagger
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -58,50 +58,62 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
-                        .requestMatchers("/api/maintenance/predict/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/recommend").authenticated()
 
                         // ✅ Auth endpoints
                         .requestMatchers("/auth/**").permitAll()
-                        // ✅ Equipement
+
+                        // ✅ Maintenance
+                        .requestMatchers("/api/maintenance/predict/**").authenticated()
+                        .requestMatchers("/api/maintenance-scheduler/dates/**").permitAll() // ← AJOUTÉ
+                        .requestMatchers("/api/maintenance-scheduler/**").authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/recommend").authenticated()
+
+                        // ✅ Equipment
                         .requestMatchers(HttpMethod.GET, "/equipment/verified").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/equipment/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/equipment/stats").authenticated()
                         .requestMatchers(HttpMethod.POST, "/equipment").authenticated()
                         .requestMatchers(HttpMethod.GET, "/equipment/my").authenticated()
                         .requestMatchers(HttpMethod.GET, "/equipment/unverified").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/equipment/verify/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/equipment/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/equipment/**").authenticated()
-                        // rental
+
+                        // ✅ Rental
+                        .requestMatchers(HttpMethod.GET, "/rental/reserved-dates/**").permitAll() // ← MODIFIÉ
                         .requestMatchers(HttpMethod.POST, "/rental/request").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/rental/accept/**").authenticated() // ✅ PRIORITÉ
+                        .requestMatchers(HttpMethod.PUT, "/rental/accept/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/rental/my-rentals").authenticated()
                         .requestMatchers(HttpMethod.GET, "/rental/received").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/rental/reserved-dates/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/rental/**").authenticated()   // ✅ AJOUTÉ
-                        .requestMatchers(HttpMethod.DELETE, "/rental/**").authenticated() // ✅ AJOUTÉ
-                        // Reviews
-                        .requestMatchers(HttpMethod.POST,   "/review/equipment/**").authenticated()  // ← POST en PREMIER
-                        .requestMatchers(HttpMethod.GET,    "/review/equipment/**").permitAll()       // ← GET en SECOND
+                        .requestMatchers(HttpMethod.PUT, "/rental/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/rental/**").authenticated()
+
+                        // ✅ Reviews
+                        .requestMatchers(HttpMethod.POST,   "/review/equipment/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/review/equipment/**").permitAll()
                         .requestMatchers(HttpMethod.PUT,    "/review/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/review/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/equipment/stats").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/equipment/search").permitAll()
+
+                        // ✅ Demand
                         .requestMatchers("/demand/**").authenticated()
+
+                        // ✅ Story
                         .requestMatchers(HttpMethod.GET,    "/story/active").permitAll()
                         .requestMatchers(HttpMethod.GET,    "/story/my").authenticated()
                         .requestMatchers(HttpMethod.POST,   "/story").authenticated()
                         .requestMatchers(HttpMethod.POST,   "/story/*/apply-promo").authenticated()
                         .requestMatchers(HttpMethod.PUT,    "/story/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/story/**").authenticated()
+
                         // ✅ Rôles
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/camp/**").hasRole("CAMPOWNER")
                         .requestMatchers("/camper/**").hasRole("CAMPER")
                         .requestMatchers("/delivery/**").hasRole("DELIVERYPERSON")
                         .requestMatchers("/partner/**").hasRole("PARTNER")
+
                         .anyRequest().authenticated()
-
-
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
