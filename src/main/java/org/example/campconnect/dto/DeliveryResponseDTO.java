@@ -28,4 +28,8 @@ public class DeliveryResponseDTO {
     private String deliveryPersonFirstName;
     private String deliveryPersonLastName;
     private String deliveryPersonPhone;
+    private Double departureLat;
+    private Double departureLng;
+    private Double arrivalLat;
+    private Double arrivalLng;
 }

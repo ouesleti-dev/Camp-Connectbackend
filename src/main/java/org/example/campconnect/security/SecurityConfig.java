@@ -62,6 +62,10 @@ public class SecurityConfig {
                                 ).permitAll()
                                 // ✅ Auth endpoints
                                 .requestMatchers("/auth/**").permitAll()
+                                // WebSocket
+                                .requestMatchers("/ws/**").permitAll()
+                                // Notifications
+                                .requestMatchers("/api/notifications/**").authenticated()
                                 // ✅ Recommendations - public
                                 .requestMatchers(HttpMethod.GET, "/api/recommendations/**").permitAll()
                                 .requestMatchers("/api/orders/**").authenticated()
