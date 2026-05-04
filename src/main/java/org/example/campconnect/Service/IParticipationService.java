@@ -21,4 +21,6 @@ public interface IParticipationService {
     ParticipationDTO updateStatus(Long id, ParticipationUpdateRequest request, String userEmail);
 
     void cancel(Long id, String userEmail);
+
+    void cancelByUser(Long id, String userEmail);
 }

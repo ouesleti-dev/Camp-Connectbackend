@@ -65,4 +65,13 @@ public class ParticipationController {
         participationService.cancel(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
+
+    // ⭐ L'utilisateur annule sa propre participation
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelMyParticipation(
+            @PathVariable Long id,
+            Authentication authentication) {
+        participationService.cancelByUser(id, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
 }

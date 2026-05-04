@@ -83,7 +83,9 @@ public class SecurityConfig {
                         .requestMatchers("/comments/**").authenticated()
                         .requestMatchers("/responses/**").authenticated()
                         .requestMatchers("/participations/**").authenticated()
-
+                        .requestMatchers("/tickets/**").authenticated()
+                        .requestMatchers("/stats/**").authenticated()
+                        .requestMatchers("/ml/**").hasAnyRole("CAMPOWNER", "ADMIN")
 
                         .requestMatchers("/camper/**").hasRole("CAMPER")
                         .requestMatchers("/delivery/**").hasRole("DELIVERYPERSON")

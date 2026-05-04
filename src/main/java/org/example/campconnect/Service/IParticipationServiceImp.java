@@ -108,4 +108,20 @@ public class IParticipationServiceImp implements IParticipationService {
 
         participationRepository.deleteById(id);
     }
+
+
+    @Override
+    public void cancelByUser(Long id, String userEmail) {
+        Participation p = participationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Participation introuvable : " + id));
+
+        // Vérifier que c'est bien l'auteur
+        if (!p.getUser().getEmail().equals(userEmail))
+            throw new SecurityException(
+                    "Vous ne pouvez annuler que votre propre participation");
+
+        p.setStatus("CANCELLED");
+        participationRepository.save(p);
+    }
 }
