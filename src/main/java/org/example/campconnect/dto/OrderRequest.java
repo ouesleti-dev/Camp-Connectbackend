@@ -17,4 +17,6 @@ public class OrderRequest {
     private String paymentMethod;
     private List<OrderLineRequest> items;
     private String couponCode;
+    private Double deliveryLat;
+    private Double deliveryLng;
 }

@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+
 import java.util.List;
 
 @Configuration
@@ -98,7 +99,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,    "/story/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/story/**").authenticated()
                         // ✅ Rôles
-
                         // Transport
                         .requestMatchers("/trips/upcoming").authenticated()
                         .requestMatchers(HttpMethod.GET,    "/vehicles/**").authenticated()
