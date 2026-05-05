@@ -192,7 +192,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:4200",
+                "https://campconnect-frontend-a4bjetdsbzfqh3e9.austriaeast-01.azurewebsites.net"
+        ));
 
 
 
