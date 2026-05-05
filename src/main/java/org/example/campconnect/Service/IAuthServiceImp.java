@@ -48,12 +48,12 @@ public class IAuthServiceImp implements IAuthService {
     }
 
     @Override
+
     public AuthResponse login(LoginRequest req) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.email(), req.password())
         );
-
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(req.email());
         String token = jwtService.generateToken(userDetails);
@@ -62,6 +62,10 @@ public class IAuthServiceImp implements IAuthService {
                 .orElseThrow(() -> new IllegalStateException("Aucun rôle trouvé"))
                 .getAuthority();
 
-        return new AuthResponse(token, userDetails.getUsername(), role);
+        // ✅ Récupère l'user depuis la DB pour avoir idUser
+        User user = userRepository.findByEmail(req.email())
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+
+        return new AuthResponse(token, userDetails.getUsername(), role, user.getIdUser());
     }
 }

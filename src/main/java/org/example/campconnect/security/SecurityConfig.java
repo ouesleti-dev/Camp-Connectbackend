@@ -1,5 +1,7 @@
 package org.example.campconnect.security;
 
+
+
 import lombok.RequiredArgsConstructor;
 import org.example.campconnect.security.jwt.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +26,7 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthFilter jwtAuthFilter;
@@ -49,6 +52,9 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider())
                 .authorizeHttpRequests(auth -> auth
+
+                        // Swagger - toujours en premier
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -57,46 +63,49 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+
+                        // Auth
                         .requestMatchers("/auth/**").permitAll()
+
+                        // Transport
                         .requestMatchers("/trips/upcoming").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/vehicles/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/vehicles/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/vehicles/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT,    "/vehicles/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/vehicles/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/options/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/options/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/options/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT,    "/options/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/options/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/trips/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/trips/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT,    "/trips/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/trips/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/transport-ads/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/transport-ads/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/transport-ads/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT,    "/transport-ads/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/transport-ads/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/reservations/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/reservations/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/reservations/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/reservations/**").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/reservations/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT,    "/reservations/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/reservations/**").authenticated()
                         .requestMatchers("/transport-ai/**").authenticated()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
 
-
+                        // Campground-Event
                         .requestMatchers(HttpMethod.DELETE, "/campings/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/campings/**").hasAnyRole("CAMPOWNER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/campings/**").hasAnyRole("CAMPOWNER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/campings/**").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/campings/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/campings/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET,    "/campings/**").authenticated()
 
-                        .requestMatchers(HttpMethod.POST, "/events/**").hasAnyRole("CAMPOWNER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/events/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/events/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/events/**").hasAnyRole("CAMPOWNER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/events/**").hasAnyRole("CAMPOWNER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/events/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/events/**").authenticated()
 
-                        .requestMatchers(HttpMethod.POST, "/activities/**").hasAnyRole("CAMPOWNER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/activities/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/activities/**").hasAnyRole("CAMPOWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/activities/**").hasAnyRole("CAMPOWNER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/activities/**").hasAnyRole("CAMPOWNER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/activities/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/activities/**").authenticated()
 
                         .requestMatchers("/posts/**").authenticated()
                         .requestMatchers("/comments/**").authenticated()
@@ -106,9 +115,29 @@ public class SecurityConfig {
                         .requestMatchers("/stats/**").authenticated()
                         .requestMatchers("/ml/**").hasAnyRole("CAMPOWNER", "ADMIN")
 
+                        // Marketplace / Orders / Products
+                        .requestMatchers(HttpMethod.GET, "/api/recommendations/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/approved").permitAll()
+                        .requestMatchers("/api/orders/confirmed").hasRole("ADMIN")
+                        .requestMatchers("/api/orders/*/approve").hasRole("ADMIN")
+                        .requestMatchers("/api/orders/*/reject").hasRole("ADMIN")
+                        .requestMatchers("/api/orders/*/confirm").authenticated()
+                        .requestMatchers("/api/orders/*/cancel").authenticated()
+                        .requestMatchers("/api/orders/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/products").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/products/pending").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/*/approve").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/*/reject").hasRole("ADMIN")
+                        .requestMatchers("/api/deliveries/**").authenticated()
+                        .requestMatchers("/api/products/**").authenticated()
+
+                        // Roles globaux
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/camp/**").hasRole("CAMPOWNER")
                         .requestMatchers("/camper/**").hasRole("CAMPER")
                         .requestMatchers("/delivery/**").hasRole("DELIVERYPERSON")
                         .requestMatchers("/partner/**").hasRole("PARTNER")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

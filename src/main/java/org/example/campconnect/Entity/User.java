@@ -56,14 +56,17 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "reservations_reservation_id")
     )
     private List<Reservation> reservations = new ArrayList<>();
+
     @JsonIgnore
     @OneToMany
+    private List<Vehicle> vehicles = new ArrayList<>();
+
     @JoinTable(
             name = "user_vehicles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "vehicles_vehicle_id")
     )
-    private List<Vehicle> vehicles = new ArrayList<>();
+
     @JsonIgnore
     @OneToMany
     private List<Product> products;
