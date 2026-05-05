@@ -26,6 +26,7 @@ public class ProductService implements IProductService {
     private final UserRepository userRepository;
     private final ProductReviewRepository reviewRepository;
     private final OrderLineRepository orderLineRepository;
+
     @Override
     public ProductResponseDTO addProduct(ProductRequestDTO dto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
