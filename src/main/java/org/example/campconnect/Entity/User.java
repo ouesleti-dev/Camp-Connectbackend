@@ -1,9 +1,12 @@
 package org.example.campconnect.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
+import java.util.ArrayList;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
 import java.util.List;
 @Builder
 @Table(name = "users")
@@ -30,45 +33,58 @@ public class User {
     @Builder.Default
     boolean enabled = true;
 
-
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Participation> participations;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Ticket> tickets;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Post> posts;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Comment> comments;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Response> responses;
-
+    @JsonIgnore
     @OneToMany
-    private List<Reservation> reservations;
-
+    @JoinTable(
+            name = "user_reservations",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "reservations_reservation_id")
+    )
+    private List<Reservation> reservations = new ArrayList<>();
+    @JsonIgnore
     @OneToMany
-    private List<Vehicle> vehicles;
-
+    @JoinTable(
+            name = "user_vehicles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "vehicles_vehicle_id")
+    )
+    private List<Vehicle> vehicles = new ArrayList<>();
+    @JsonIgnore
     @OneToMany
     private List<Product> products;
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Order> orders;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Review> review;
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Maintenance> maintenance;
+    @JsonIgnore
     @OneToMany
     private List<Equipment> equipement;
 
 
-
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<PartnerInterview> interviews;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<PartnerQuiz> quizzes;
 

@@ -1,11 +1,15 @@
 package org.example.campconnect.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,8 +24,9 @@ public class TransportAd {
     Long availableSeats;
     @Enumerated(EnumType.STRING)
     TransportType transportType;
-    @OneToOne(mappedBy = "transportAd")
-    private Reservation reservation;
+    @JsonIgnore
+    @OneToMany(mappedBy = "transportAd")
+    private List<Reservation> reservations = new ArrayList<>();
 
     @OneToOne
     private Trip trip;

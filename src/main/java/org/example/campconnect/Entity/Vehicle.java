@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.util.ArrayList;
 import java.util.List;
 @Entity
 @Getter
@@ -15,13 +16,14 @@ public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long vehicleId ;
+
     String licensePlate ;
     String vehicleType ;
     Long capacity ;
     String status ;
     @OneToMany(mappedBy = "vehicle")
-    private List<OptionService> optionServices;
+    private List<OptionService> optionServices = new ArrayList<>();
 
     @OneToMany(mappedBy = "vehicle")
-    private List<Trip> trips;
+    private List<Trip> trips = new ArrayList<>() ;
 }

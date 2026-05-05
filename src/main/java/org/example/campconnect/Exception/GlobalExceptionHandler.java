@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
             errors.put(field, message);
         });
         return ResponseEntity.badRequest().body(errors);
-    }
+    }  // ✅ accolade ajoutée ici
 
     // Erreurs métier
     @ExceptionHandler(IllegalArgumentException.class)
@@ -33,6 +33,11 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex) {
         return ResponseEntity.badRequest()
                 .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     // Non autorisé
@@ -57,4 +62,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Erreur interne : " + ex.getMessage()));
     }
-}
+}  // ✅ une seule accolade ici

@@ -19,6 +19,7 @@ public class OptionService {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long optionId ;
     String name ;
+    Float price;
     @Enumerated(EnumType.STRING)
     OptionType optionType ;
     @ManyToOne

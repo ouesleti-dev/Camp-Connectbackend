@@ -1,5 +1,6 @@
 package org.example.campconnect.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,9 +22,14 @@ public class Trip {
     String destination ;
     Date departureDate ;
     float distance ;
+    Double departureLat;
+    Double departureLng;
+    Double destinationLat;
+    Double destinationLng;
     @ManyToOne
     private Vehicle vehicle;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "trip")
     private TransportAd transportAd;
 }
