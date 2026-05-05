@@ -9,6 +9,7 @@ import java.util.List;
 public interface IPatnershipService {
 
     List<PartnershipDTOs.PartnerUserSummaryDTO> getPartnerUsers();
+    void runPartnershipScheduler();
 
     PartnershipDTOs.PartnerUserSummaryDTO createPartnerUser(PartnershipDTOs.PartnerUserWriteDTO dto);
 

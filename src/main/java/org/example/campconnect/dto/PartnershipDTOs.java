@@ -64,11 +64,13 @@ public class PartnershipDTOs {
         private Date endDate;
         private Double price;
         private String status;
+        private Long campingId;
 
         public OfferDTO() {}
-        public OfferDTO(Long offerId, String title, String description, Date startDate, Date endDate, Double price, String status) {
+        public OfferDTO(Long offerId, String title, String description, Date startDate, Date endDate, Double price, String status, Long campingId) {
             this.offerId = offerId; this.title = title; this.description = description;
             this.startDate = startDate; this.endDate = endDate; this.price = price; this.status = status;
+            this.campingId = campingId;
         }
         public Long getOfferId() { return offerId; }
         public void setOfferId(Long offerId) { this.offerId = offerId; }
@@ -84,6 +86,8 @@ public class PartnershipDTOs {
         public void setPrice(Double price) { this.price = price; }
         public String getStatus() { return status; }
         public void setStatus(String status) { this.status = status; }
+        public Long getCampingId() { return campingId; }
+        public void setCampingId(Long campingId) { this.campingId = campingId; }
     }
 
     public static class PartnerInterviewDTO {

@@ -31,6 +31,10 @@ public class offer {
     @Enumerated(EnumType.STRING)
     private OfferStatus status;
 
+    @ManyToOne
+    @JoinColumn(name = "camping_id")
+    private Camping camping;
+
     @OneToMany(mappedBy = "offer")
     private List<Contrat> contracts;
 }

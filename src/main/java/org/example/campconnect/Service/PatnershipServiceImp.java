@@ -29,6 +29,7 @@ public class PatnershipServiceImp implements IPatnershipService {
     private UserRepository userRepository;
     private CampingRepository campingRepository;
     private PasswordEncoder passwordEncoder;
+    private NotificationService notificationService;
 
     @Override
     public List<PartnershipDTOs.PartnerUserSummaryDTO> getPartnerUsers() {
@@ -297,6 +298,11 @@ public class PatnershipServiceImp implements IPatnershipService {
         o.setEndDate(dto.getEndDate());
         o.setPrice(dto.getPrice());
         o.setStatus(OfferStatus.valueOf(dto.getStatus()));
+        if (dto.getCampingId() != null) {
+            Camping c = campingRepository.findById(dto.getCampingId())
+                    .orElseThrow(() -> new RuntimeException("Camping not found with id: " + dto.getCampingId()));
+            o.setCamping(c);
+        }
         return toOfferDTO(offerRepository.save(o));
     }
 
@@ -310,7 +316,22 @@ public class PatnershipServiceImp implements IPatnershipService {
         o.setEndDate(dto.getEndDate());
         o.setPrice(dto.getPrice());
         o.setStatus(OfferStatus.valueOf(dto.getStatus()));
-        return toOfferDTO(offerRepository.save(o));
+        if (dto.getCampingId() != null) {
+            Camping c = campingRepository.findById(dto.getCampingId())
+                    .orElseThrow(() -> new RuntimeException("Camping not found with id: " + dto.getCampingId()));
+            o.setCamping(c);
+        } else {
+            o.setCamping(null);
+        }
+        
+        offer savedOffer = offerRepository.save(o);
+        if (savedOffer.getCamping() != null && savedOffer.getCamping().getPartnerLinks() != null) {
+            for (User partner : savedOffer.getCamping().getPartnerLinks()) {
+                notificationService.notifyStatusChange(partner.getIdUser(), "The status of your offer '" + o.getTitle() + "' has changed to: " + o.getStatus().name());
+            }
+        }
+        
+        return toOfferDTO(savedOffer);
     }
 
     @Override
@@ -407,6 +428,7 @@ public class PatnershipServiceImp implements IPatnershipService {
             PartnerInterview pi = interviewRepository.findById(dto.getInterviewId())
                     .orElseThrow(() -> new RuntimeException("Interview not found with id: " + dto.getInterviewId()));
             m.setInterview(pi);
+            notificationService.notifyInterviewScheduled(pi.getUser().getIdUser(), "An interview meeting has been scheduled for " + dto.getMeetingDate() + " at " + dto.getStartTime());
         }
         return toMeetingDTO(meetingRepository.save(m));
     }
@@ -624,7 +646,8 @@ public class PatnershipServiceImp implements IPatnershipService {
                 o.getStartDate(),
                 o.getEndDate(),
                 o.getPrice(),
-                o.getStatus() != null ? o.getStatus().name() : null
+                o.getStatus() != null ? o.getStatus().name() : null,
+                o.getCamping() != null ? o.getCamping().getCampingId() : null
         );
     }
 
@@ -676,6 +699,94 @@ public class PatnershipServiceImp implements IPatnershipService {
                 r.getValue(),
                 r.getGrade(),
                 r.getQuestion() != null ? r.getQuestion().getQuestionId() : null
+        );
+    }
+    @Override
+    @Transactional
+    public void runPartnershipScheduler() {
+        System.out.println("===== PARTNERSHIP SCHEDULER START =====");
+        java.util.Date now = new java.util.Date();
+
+        int updatedContracts = 0;
+        int updatedOffers = 0;
+        int updatedMeetings = 0;
+
+        // 1) Contrats: expire si fin dépassée, sinon passe en IN_PROGRESS si démarré.
+        List<Contrat> contractsToSave = new java.util.ArrayList<>();
+        List<Contrat> contracts = contratRepository.findAll();
+        for (Contrat c : contracts) {
+            ContractStatus before = c.getStatus();
+            if (c.getEndDate() != null && c.getEndDate().before(now)) {
+                if (before != ContractStatus.EXPIRED && before != ContractStatus.TERMINATED) {
+                    c.setStatus(ContractStatus.EXPIRED);
+                    if (c.getOffer() != null && c.getOffer().getCamping() != null) {
+                        for (User partner : c.getOffer().getCamping().getPartnerLinks()) {
+                            notificationService.notifyContractExpired(partner.getIdUser(), "Your contract for offer '" + c.getOffer().getTitle() + "' has expired.");
+                        }
+                    }
+                }
+            } else if (c.getStartDate() != null && !c.getStartDate().after(now)) {
+                if (before != ContractStatus.IN_PROGRESS && before != ContractStatus.TERMINATED) {
+                    c.setStatus(ContractStatus.IN_PROGRESS);
+                }
+            }
+            if (c.getStatus() != before) {
+                contractsToSave.add(c);
+                updatedContracts++;
+            }
+        }
+        if (!contractsToSave.isEmpty()) {
+            contratRepository.saveAll(contractsToSave);
+        }
+
+        // 2) Offers: expire si fin dépassée.
+        List<offer> offersToSave = new java.util.ArrayList<>();
+        List<offer> offers = offerRepository.findAll();
+        for (offer o : offers) {
+            OfferStatus before = o.getStatus();
+            if (o.getEndDate() != null && o.getEndDate().before(now) && before != OfferStatus.EXPIRED) {
+                o.setStatus(OfferStatus.EXPIRED);
+            }
+            if (o.getStatus() != before) {
+                offersToSave.add(o);
+                updatedOffers++;
+            }
+        }
+        if (!offersToSave.isEmpty()) {
+            offerRepository.saveAll(offersToSave);
+        }
+
+        // 3) Meetings: marque MISSED si passée et report vide.
+        List<InterviewMeeting> meetingsToSave = new java.util.ArrayList<>();
+        List<InterviewMeeting> meetings = meetingRepository.findAll();
+        for (InterviewMeeting m : meetings) {
+            if (m.getMeetingDate() != null
+                    && m.getMeetingDate().before(now)
+                    && (m.getReport() == null || m.getReport().isBlank())) {
+                m.setReport("MISSED");
+                meetingsToSave.add(m);
+                updatedMeetings++;
+            }
+        }
+        if (!meetingsToSave.isEmpty()) {
+            meetingRepository.saveAll(meetingsToSave);
+        }
+
+        // 4) Quiz scoring insight (lecture seule, aucun update BD ici).
+        List<PartnerQuiz> quizzes = quizRepository.findAll();
+        for (PartnerQuiz q : quizzes) {
+            Long userId = q.getUser() != null ? q.getUser().getIdUser() : null;
+            if (userId == null) continue;
+            Double score = reponsesRepository.sumGradesForPartner(userId);
+            if (score != null && score < 50) {
+                System.out.println("Low score partner: " + q.getUser().getEmail() + " (" + score + ")");
+            }
+        }
+
+        System.out.println(
+                "===== PARTNERSHIP SCHEDULER END | contracts=" + updatedContracts
+                        + ", offers=" + updatedOffers
+                        + ", meetings=" + updatedMeetings + " ====="
         );
     }
 }

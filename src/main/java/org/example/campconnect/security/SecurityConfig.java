@@ -59,7 +59,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/ws/**",
+                                "/api/predict/**"
                         ).permitAll()
                         // ✅ Auth endpoints
                         .requestMatchers("/auth/**").permitAll()
@@ -165,6 +167,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/deliveries/**").authenticated()
 // Products - authenticated
                                 .requestMatchers("/api/products/**").authenticated()
+                                .requestMatchers("/api/notifications/**").authenticated()
                         //Partnership
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 // ✅ Interface partenariat (fichiers statiques)
