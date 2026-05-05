@@ -16,7 +16,7 @@ import java.util.HashMap;
 public class Transportaicontroller {
 
     private final RestTemplate restTemplate;
-    private final String AI_URL = "http://localhost:5000";
+    private final String AI_URL = "http://localhost:5001";
 
     // ─── POST /transport-ai/predict-price ────────────────────────────────
     // Predict price by distance (simple)
@@ -78,7 +78,7 @@ public class Transportaicontroller {
         } catch (Exception e) {
             return ResponseEntity.ok(Map.of(
                     "status", "offline",
-                    "message", "AI server not running on port 5000"
+                    "message", "AI server not running on port 5001"
             ));
         }
     }

@@ -12,7 +12,7 @@ import org.springframework.http.*;
 public class IMLServiceImp implements IMLService {
 
     // ⭐ URL FastAPI — configurable dans application.properties
-    @Value("${ml.api.url:http://localhost:8000}")
+    @Value("${ml.api.url:http://localhost:8001}")
     private String mlApiUrl;
 
     private final RestTemplate restTemplate;
