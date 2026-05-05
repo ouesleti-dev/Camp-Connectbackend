@@ -19,7 +19,10 @@ public class Rental {
     Date startdate;
     Date enddate;
     float totalAmount;
-    Boolean verified;
-    @ManyToMany
-    private List<Equipment> equipment;
+    Boolean verified = false;
+    String renterEmail;
+    String ownerEmail;
+    @ManyToOne
+    @JoinColumn(name = "equipment_id")
+    Equipment equipment;
 }

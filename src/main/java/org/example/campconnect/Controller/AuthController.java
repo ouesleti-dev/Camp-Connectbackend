@@ -7,6 +7,7 @@ import org.example.campconnect.dto.AuthResponse;
 import org.example.campconnect.dto.LoginRequest;
 import org.example.campconnect.dto.RegisterRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

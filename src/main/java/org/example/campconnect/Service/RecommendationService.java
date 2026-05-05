@@ -1,5 +1,9 @@
 package org.example.campconnect.Service;
 
+
+
+import lombok.RequiredArgsConstructor;
+import org.example.campconnect.dto.RecommendationRequestDto;
 import org.example.campconnect.dto.ProductResponseDTO;
 import org.example.campconnect.dto.RecommendationDTO;
 import org.example.campconnect.Repository.ProductRepository;
@@ -21,19 +25,21 @@ public class RecommendationService {
     private final ProductRepository productRepository;
     private final ProductService productService;
 
+    private static final String AI_URL = "http://localhost:5000/recommend";
+
     @Value("${recommendation.api.url:http://localhost:8000}")
     private String aiApiUrl;
 
     public RecommendationService(ProductRepository productRepository,
-                                  ProductService productService) {
-        this.restTemplate     = new RestTemplate();
+                                 ProductService productService) {
+        this.restTemplate      = new RestTemplate();
         this.productRepository = productRepository;
         this.productService    = productService;
     }
 
+    // Méthode 1 — GET recommendations par ID (ton collègue)
     public List<ProductResponseDTO> getRecommendations(Long productId, int topN) {
         String url = aiApiUrl + "/recommend/" + productId + "?top_n=" + topN;
-
         try {
             RecommendationDTO response = restTemplate.getForObject(url, RecommendationDTO.class);
 
@@ -41,7 +47,6 @@ public class RecommendationService {
                 return new ArrayList<>();
             }
 
-            // Fetch full product details for each recommended ID
             List<Long> recommendedIds = response.getRecommendations()
                     .stream()
                     .map(r -> (long) r.getProductId())
@@ -52,13 +57,16 @@ public class RecommendationService {
                 Optional<Product> product = productRepository.findById(rid);
                 product.ifPresent(p -> result.add(productService.toDTO(p)));
             }
-
             return result;
 
         } catch (Exception e) {
-            // AI service unavailable — return empty list gracefully
             System.err.println("Recommendation service unavailable: " + e.getMessage());
             return new ArrayList<>();
         }
+    }
+
+    // Méthode 2 — POST recommend (autre collègue)
+    public Map<?, ?> recommend(RecommendationRequestDto dto) {
+        return restTemplate.postForObject(AI_URL, dto, Map.class);
     }
 }

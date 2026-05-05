@@ -1,7 +1,5 @@
 package org.example.campconnect.security;
 
-
-
 import lombok.RequiredArgsConstructor;
 import org.example.campconnect.security.jwt.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +24,6 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthFilter jwtAuthFilter;
@@ -63,9 +60,44 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+                        .requestMatchers("/api/maintenance/predict/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/recommend").authenticated()
+
+                        // ✅ Auth endpoints
 
                         // Auth
                         .requestMatchers("/auth/**").permitAll()
+                        // ✅ Equipement
+                        .requestMatchers(HttpMethod.GET, "/equipment/verified").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/equipment").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/equipment/my").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/equipment/unverified").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/equipment/verify/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/equipment/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/equipment/**").authenticated()
+                        // rental
+                        .requestMatchers(HttpMethod.POST, "/rental/request").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/rental/accept/**").authenticated() // ✅ PRIORITÉ
+                        .requestMatchers(HttpMethod.GET, "/rental/my-rentals").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/rental/received").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/rental/reserved-dates/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/rental/**").authenticated()   // ✅ AJOUTÉ
+                        .requestMatchers(HttpMethod.DELETE, "/rental/**").authenticated() // ✅ AJOUTÉ
+                        // Reviews
+                        .requestMatchers(HttpMethod.POST,   "/review/equipment/**").authenticated()  // ← POST en PREMIER
+                        .requestMatchers(HttpMethod.GET,    "/review/equipment/**").permitAll()       // ← GET en SECOND
+                        .requestMatchers(HttpMethod.PUT,    "/review/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/review/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/equipment/stats").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/equipment/search").permitAll()
+                        .requestMatchers("/demand/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/story/active").permitAll()
+                        .requestMatchers(HttpMethod.GET,    "/story/my").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/story").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/story/*/apply-promo").authenticated()
+                        .requestMatchers(HttpMethod.PUT,    "/story/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/story/**").authenticated()
+                        // ✅ Rôles
 
                         // Transport
                         .requestMatchers("/trips/upcoming").authenticated()
@@ -137,7 +169,6 @@ public class SecurityConfig {
                         .requestMatchers("/camper/**").hasRole("CAMPER")
                         .requestMatchers("/delivery/**").hasRole("DELIVERYPERSON")
                         .requestMatchers("/partner/**").hasRole("PARTNER")
-
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
