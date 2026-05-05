@@ -1,5 +1,4 @@
 package org.example.campconnect.Repository;
-
 import org.example.campconnect.Entity.Equipment;
 import org.example.campconnect.Entity.Rental;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -81,4 +80,15 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
         ORDER BY r.startdate DESC
     """)
     List<Rental> findAllWithEquipmentByEquipmentId(@Param("equipmentId") Long equipmentId);
+    @Query("""
+    SELECT r FROM Rental r
+    WHERE r.equipment.idEquipement = :equipmentId
+      AND r.verified = true
+      AND r.startdate < :endDate
+      AND r.enddate   > :startDate
+""")
+    List<Rental> findRentalsOverlappingPeriod(
+            @Param("equipmentId") Long equipmentId,
+            @Param("startDate")   Date startDate,
+            @Param("endDate")     Date endDate);
 }

@@ -34,6 +34,8 @@ public class OrderService implements IOrderService {
         Order order = Order.builder()
                 .orderDate(new Date())
                 .deliveryAddress(request.getDeliveryAddress())
+                .deliveryLat(request.getDeliveryLat())   // ← AJOUTE
+                .deliveryLng(request.getDeliveryLng())   // ← AJOUTE
                 .paymentMethod(request.getPaymentMethod())
                 .totalAmount(0.0)
                 .user(user)

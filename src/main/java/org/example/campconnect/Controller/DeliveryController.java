@@ -1,10 +1,11 @@
 package org.example.campconnect.Controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.campconnect.Service.DeliveryService;
+import org.example.campconnect.Service.DeliveryFeeService;
 import org.example.campconnect.Service.IDeliveryService;
 import org.example.campconnect.dto.DeliveryResponseDTO;
 import org.example.campconnect.dto.DeliveryStatsDTO;
+import org.example.campconnect.dto.FeePreviewDTO;
 import org.example.campconnect.dto.TakeDeliveryRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 public class DeliveryController {
 
     private final IDeliveryService deliveryService;
+    private final DeliveryFeeService deliveryFeeService;
 
 
     @GetMapping("/pending")
@@ -67,5 +69,29 @@ public class DeliveryController {
     public ResponseEntity<List<DeliveryResponseDTO>> getActiveForCustomer(
             @PathVariable Long customerId) {
         return ResponseEntity.ok(deliveryService.getDeliveriesForCustomer(customerId));
+    }
+
+    @GetMapping("/fee-preview")
+    public ResponseEntity<FeePreviewDTO> previewFee(
+            @RequestParam String departure,
+            @RequestParam String arrival,
+            @RequestParam(required = false) Double fromLat,
+            @RequestParam(required = false) Double fromLng,
+            @RequestParam(required = false) Double toLat,
+            @RequestParam(required = false) Double toLng) {
+
+        FeePreviewDTO dto;
+
+        // Si les coords sont fournies → calcul direct, zéro Nominatim
+        if (fromLat != null && fromLng != null && toLat != null && toLng != null) {
+            dto = deliveryFeeService.calculateFeeFromCoords(
+                    fromLat, fromLng, toLat, toLng, departure, arrival
+            );
+        } else {
+            // Fallback géocodage (lent, risque 429)
+            dto = deliveryFeeService.calculateFeePreview(departure, arrival);
+        }
+
+        return ResponseEntity.ok(dto);
     }
 }

@@ -22,6 +22,8 @@ public class Order {
     Double totalAmount;
     String deliveryAddress;
     String paymentMethod;
+    Double deliveryLat;
+    Double deliveryLng;
     @Column(nullable = false)
     @Builder.Default
     String orderStatus = "PENDING";

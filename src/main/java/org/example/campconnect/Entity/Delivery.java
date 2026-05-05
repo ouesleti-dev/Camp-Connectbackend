@@ -20,6 +20,10 @@ public class Delivery {
     String arrivalAddress;
     Double deliveryFee;
     Date estimatedDeliveryDate;
+    Double departureLat;
+    Double departureLng;
+    Double arrivalLat;
+    Double arrivalLng;
     @Enumerated(EnumType.STRING)
     DeliveryState deliverystate ;
     @OneToOne

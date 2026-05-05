@@ -18,8 +18,9 @@ public class OrderController {
     private final IOrderService orderService;
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest request) {
-        return ResponseEntity.ok(orderService.createOrder(request));
+    public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderRequest request) {
+        Order order = orderService.createOrder(request);
+        return ResponseEntity.ok(orderService.getOrderById(order.getIdOrder()));
     }
 
     @GetMapping

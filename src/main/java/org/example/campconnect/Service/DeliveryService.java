@@ -6,6 +6,7 @@ import org.example.campconnect.Entity.*;
 import org.example.campconnect.Repository.*;
 import org.example.campconnect.dto.DeliveryResponseDTO;
 import org.example.campconnect.dto.DeliveryStatsDTO;
+import org.example.campconnect.dto.FeePreviewDTO;
 import org.example.campconnect.dto.TakeDeliveryRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,8 @@ public class DeliveryService implements IDeliveryService {
 
     private final DeliveryRepository deliveryRepository;
     private final UserRepository userRepository;
+    private final DeliveryFeeService deliveryFeeService;
+    private final NotificationDeliveryService notificationDeliveryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,17 +51,54 @@ public class DeliveryService implements IDeliveryService {
         Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new RuntimeException("Delivery not found"));
 
-        if (delivery.getDeliverystate() != DeliveryState.PENDING) {
+        if (delivery.getDeliverystate() != DeliveryState.PENDING)
             throw new RuntimeException("Delivery is not available");
-        }
 
         User deliveryPerson = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         delivery.setDeliveryPerson(deliveryPerson);
         delivery.setDeliverystate(DeliveryState.ON_THE_WAY);
-        delivery.setEstimatedDeliveryDate(request.getEstimatedDeliveryDate()); // ✅
-        return toDTO(deliveryRepository.save(delivery));
+        delivery.setEstimatedDeliveryDate(request.getEstimatedDeliveryDate());
+
+        // ── Calcul fee : coords directes si dispo, sinon géocodage ──
+        Order order = delivery.getOrder();
+        FeePreviewDTO feeDTO;
+
+        if (order != null
+                && order.getDeliveryLat() != null
+                && order.getDeliveryLng() != null
+                && delivery.getDepartureLat() != null
+                && delivery.getDepartureLng() != null) {
+
+            // ✅ Coords disponibles → zéro appel Nominatim
+            feeDTO = deliveryFeeService.calculateFeeFromCoords(
+                    delivery.getDepartureLat(), delivery.getDepartureLng(),
+                    order.getDeliveryLat(),     order.getDeliveryLng(),
+                    delivery.getDepartureAddress(), delivery.getArrivalAddress()
+            );
+        } else {
+            // Fallback géocodage
+            feeDTO = deliveryFeeService.calculateFeePreview(
+                    delivery.getDepartureAddress(), delivery.getArrivalAddress()
+            );
+        }
+
+        delivery.setDeliveryFee(feeDTO.getCalculatedFee());
+        // ─────────────────────────────────────────────────────────────
+
+        DeliveryResponseDTO result = toDTO(deliveryRepository.save(delivery));
+
+        if (order != null && order.getUser() != null) {
+            String dpName = deliveryPerson.getFirstName() + " " + deliveryPerson.getLastName();
+            notificationDeliveryService.sendNotification(
+                    order.getUser().getIdUser(), delivery.getIdDelivery(),
+                    "DELIVERY_TAKEN",
+                    "Your order #" + order.getIdOrder() + " assigned to " + dpName
+            );
+        }
+
+        return result;
     }
 
     @Override
@@ -73,7 +113,20 @@ public class DeliveryService implements IDeliveryService {
         }
 
         delivery.setDeliverystate(DeliveryState.DELIVERED);
-        return toDTO(deliveryRepository.save(delivery));
+        DeliveryResponseDTO result = toDTO(deliveryRepository.save(delivery));
+
+        if (delivery.getOrder() != null && delivery.getOrder().getUser() != null) {
+            Long customerId = delivery.getOrder().getUser().getIdUser();
+            notificationDeliveryService.sendNotification(
+                    customerId,
+                    delivery.getIdDelivery(),
+                    "DELIVERY_COMPLETED",
+                    "Your order #" + delivery.getOrder().getIdOrder()
+                            + " has been delivered successfully!"
+            );
+        }
+
+        return result;
     }
 
     @Override
@@ -155,6 +208,10 @@ public class DeliveryService implements IDeliveryService {
                         d.getOrder().getUser().getPhone() : null)
                 .deliveryPersonPhone(d.getDeliveryPerson() != null ?
                         d.getDeliveryPerson().getPhone() : null)
+                .departureLat(d.getDepartureLat())
+                .departureLng(d.getDepartureLng())
+                .arrivalLat(d.getOrder() != null ? d.getOrder().getDeliveryLat() : null)
+                .arrivalLng(d.getOrder() != null ? d.getOrder().getDeliveryLng() : null)
                 .build();
     }
 }
