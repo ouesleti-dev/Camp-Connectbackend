@@ -252,10 +252,10 @@ public class DemandAnalysisServiceImpl implements IDemandAnalysisService {
 
     private String buildDemandAdvice(DemandAnalysisResponse.DemandLevel demandLevel) {
         return switch (demandLevel) {
-            case VERY_HIGH -> "Demande tres elevee : augmenter les prix et recommander aux passagers de reserver vite.";
-            case HIGH -> "Demande forte : bon moment pour proposer plus de trajets ou optimiser les disponibilites.";
-            case MEDIUM -> "Demande normale : maintenir les prix et surveiller les prochaines reservations.";
-            case LOW -> "Demande faible : reduire les prix ou proposer des offres pour stimuler les reservations.";
+            case VERY_HIGH -> "Very high demand: increase prices and recommend passengers book quickly.";
+            case HIGH -> "High demand: good time to offer more rides or optimize availability.";
+            case MEDIUM -> "Normal demand: maintain prices and monitor upcoming bookings.";
+            case LOW -> "Low demand: reduce prices or offer promotions to boost bookings.";
         };
     }
 

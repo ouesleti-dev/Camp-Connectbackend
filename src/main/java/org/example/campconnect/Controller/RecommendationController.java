@@ -37,4 +37,5 @@ public class RecommendationController {
     public ResponseEntity<Map<?, ?>> recommend(@RequestBody RecommendationRequestDto dto) {
         return ResponseEntity.ok(recommendationService.recommend(dto));
     }
+
 }
