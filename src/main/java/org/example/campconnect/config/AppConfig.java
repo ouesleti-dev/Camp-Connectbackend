@@ -1,4 +1,4 @@
-package org.example.campconnect.Config;
+package org.example.campconnect.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,3 +12,4 @@ public class AppConfig {
         return new RestTemplate();
     }
 }
+
